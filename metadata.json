@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Id": "Windows7StartMenu4KDE",
+        "Name": "Windows7StartMenu4KDE",
+        "Description": "AS it says in the title.",
+        "Category": "Application Launchers",
+        "Icon": "start-here-kde",
+        "License": "GPL-2.0+",
+        "EnabledByDefault": true,
+        "Authors": [
+            {
+                "Name": "walterdemacedorodrigues",
+                "Email": "wmr2@cin.ufpe.br"
+            }
+        ],
+        "Website": "https://github.com/walterdemacedorodrigues/Windows7StartMenu4KDE",
+        "BugReportUrl": ""
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.launchermenu"
+    ]
+}

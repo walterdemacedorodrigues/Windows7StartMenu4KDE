@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Windows7StartMenu4KDE
+
+Type=Service
+Icon=start-here-kde
+X-KDE-ServiceTypes=Plasma/Applet
+
+X-Plasma-API=declarativeappletscript
+X-Plasma-MainScript=ui/main.qml
+X-KDE-PluginInfo-Name=Windows7StartMenu4KDE
+
