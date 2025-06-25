@@ -3,6 +3,7 @@
  *  SPDX-FileCopyrightText: zayronxio
  *  SPDX-License-Identifier: GPL-3.0-or-later
  */
+
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import org.kde.plasma.plasmoid 2.0
@@ -11,7 +12,8 @@ import org.kde.plasma.components 3.0 as PC3
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.private.kicker 0.1 as Kicker
-import org.kde.plasma.private.taskmanager 0.1 as TaskManagerApplet
+import org.kde.taskmanager 0.1 as TaskManager
+import org.kde.plasma.private.taskmanager as TaskManagerApplet
 import "parts" as Parts
 
 Item {
