@@ -3,6 +3,7 @@
  * SPDX-FileCopyrightText: zayronxio
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+
 import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import org.kde.plasma.core 2.0 as PlasmaCore
@@ -11,8 +12,12 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.ksvg 1.0 as KSvg
 import org.kde.plasma.private.kicker 0.1 as Kicker
-import org.kde.plasma.private.taskmanager 0.1 as TaskManagerApplet
-import ".." // Importa os componentes da pasta pai
+// Plasma 6: modelos públicos (TasksModel, GroupManager …)
+import org.kde.taskmanager 0.1 as TaskManager
+// Plasma 6: backend privado continua aqui, mas **sem** número de versão
+import org.kde.plasma.private.taskmanager as TaskManagerApplet
+import ".."                                  // componentes da pasta‑pai
+
 
 Item {
     id: favoritesView
