@@ -26,6 +26,14 @@ FavoritesGridView {
     // Signals (keyNavUp already defined in FavoritesGridView)
     signal menuClosed()
 
+    // Debug logging
+    onWidthChanged: {
+        console.log("[Recents] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth));
+    }
+    onCellWidthChanged: {
+        console.log("[Recents] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth));
+    }
+
     // Models
     Kicker.RecentUsageModel {
         id: frequentAppsModel
