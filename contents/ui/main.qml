@@ -99,7 +99,6 @@ PlasmoidItem {
                 currentAction = "";
             }
 
-            systemActionsMenu.visible = false;
             root.toggle();
         }
 
@@ -283,182 +282,13 @@ PlasmoidItem {
                         Layout.fillWidth: true
                     }
 
-                    Item {
-                        Layout.preferredWidth: parent.width * 0.3
-                        Layout.fillHeight: true
+                    Parts.Power {
+                        id: powerButtons
 
-                        PlasmaComponents3.Button {
-                            id: shutdownButton
-                            anchors.left: parent.left
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            width: parent.width - dropdownButton.width
-                            text: i18n("Shutdown")
-                            icon.name: "system-shutdown"
-                            enabled: !root.systemActionInProgress
+                        actionInProgress: root.systemActionInProgress
 
-                            onClicked: {
-                                root.executeSystemAction("systemctl poweroff", "shutdown");
-                            }
-                        }
-
-                        PlasmaComponents3.Button {
-                            id: dropdownButton
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            width: Kirigami.Units.gridUnit * 1.2
-                            icon.name: "arrow-down"
-
-                            onClicked: {
-                                systemActionsMenu.visible = !systemActionsMenu.visible;
-                            }
-                        }
-
-                        Rectangle {
-                            id: systemActionsMenu
-                            visible: false
-                            width: Kirigami.Units.gridUnit * 10
-                            height: systemActionsColumn.height + (Kirigami.Units.smallSpacing * 2)
-                            color: Kirigami.Theme.backgroundColor || "#232629"
-                            border.width: 1
-                            border.color: Kirigami.Theme.separatorColor || "#3c4043"
-                            radius: 4
-
-                            anchors.bottom: parent.top
-                            anchors.right: parent.right
-                            anchors.bottomMargin: Kirigami.Units.smallSpacing
-
-                            z: 2000
-
-                            Keys.onPressed: (event) => {
-                                if (event.key === Qt.Key_Escape) {
-                                    event.accepted = true;
-                                    visible = false;
-                                }
-                            }
-
-                            onVisibleChanged: {
-                                // Focus será gerenciado automaticamente
-                            }
-
-                            Rectangle {
-                                anchors.fill: parent
-                                anchors.topMargin: 2
-                                anchors.leftMargin: 2
-                                radius: parent.radius
-                                color: Qt.rgba(0, 0, 0, 0.3)
-                                z: -1
-                            }
-
-                            Column {
-                                id: systemActionsColumn
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.top: parent.top
-                                anchors.margins: Kirigami.Units.smallSpacing
-                                spacing: 2
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Restart")
-                                    icon.name: "system-reboot"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        root.executeSystemAction("systemctl reboot", "restart");
-                                    }
-                                }
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Turn Off Screen")
-                                    icon.name: "video-display"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        if (typeof root.executeSystemAction === "function") {
-                                            root.executeSystemAction("kscreen-doctor --dpms off", "screen_off");
-                                        }
-                                    }
-                                }
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Lock Screen")
-                                    icon.name: "system-lock-screen"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        if (typeof root.executeSystemAction === "function") {
-                                            root.executeSystemAction("qdbus org.kde.kscreenlocker /ScreenSaver Lock", "lock");
-                                        }
-                                    }
-                                }
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Sleep")
-                                    icon.name: "system-suspend"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        if (typeof root.executeSystemAction === "function") {
-                                            root.executeSystemAction("systemctl suspend", "suspend");
-                                        }
-                                    }
-                                }
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Hibernate")
-                                    icon.name: "system-suspend-hibernate"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        if (typeof root.executeSystemAction === "function") {
-                                            root.executeSystemAction("systemctl hibernate", "hibernate");
-                                        }
-                                    }
-                                }
-
-                                PlasmaComponents3.Button {
-                                    width: parent.width
-                                    height: Kirigami.Units.gridUnit * 1.8
-                                    text: i18n("Log Out")
-                                    icon.name: "system-log-out"
-                                    flat: true
-                                    enabled: !root.systemActionInProgress
-
-                                    onClicked: {
-                                        var logoutCmd = "loginctl terminate-session";
-                                        if (typeof process !== "undefined" && process.env && process.env.XDG_SESSION_ID) {
-                                            logoutCmd += " " + process.env.XDG_SESSION_ID;
-                                        } else {
-                                            logoutCmd = "qdbus org.kde.ksmserver /KSMServer logout 1 0 0";
-                                        }
-                                        root.executeSystemAction(logoutCmd, "logout");
-                                    }
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                propagateComposedEvents: true
-                                onPressed: {
-                                    mouse.accepted = false;
-                                }
-                            }
+                        onExecuteAction: (command, actionType) => {
+                            root.executeSystemAction(command, actionType);
                         }
                     }
                 }
