@@ -18,8 +18,7 @@ FavoritesGridView {
     // Properties
     property bool dragEnabled: true
     property bool dropEnabled: true
-    property int cellHeight: 48
-    // cellWidth is already an alias in FavoritesGridView - don't override it
+    // cellWidth and cellHeight are aliases in FavoritesGridView - don't override them
     property int iconSize: 32
     property alias taskManagerBackend: taskManagerBackend
 
