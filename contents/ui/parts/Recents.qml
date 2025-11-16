@@ -28,10 +28,13 @@ FavoritesGridView {
 
     // Debug logging
     onWidthChanged: {
-        console.log("[Recents] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth));
+        console.log("[Recents] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth), "height:", height);
     }
     onCellWidthChanged: {
-        console.log("[Recents] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth));
+        console.log("[Recents] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth), "height:", height);
+    }
+    onHeightChanged: {
+        console.log("[Recents] height changed:", height, "count:", count);
     }
 
     // Models

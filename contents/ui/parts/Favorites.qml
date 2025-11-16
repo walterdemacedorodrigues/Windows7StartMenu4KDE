@@ -28,10 +28,13 @@ FavoritesGridView {
 
     // Debug logging
     onWidthChanged: {
-        console.log("[Favorites] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth));
+        console.log("[Favorites] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth), "height:", height);
     }
     onCellWidthChanged: {
-        console.log("[Favorites] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth));
+        console.log("[Favorites] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth), "height:", height);
+    }
+    onHeightChanged: {
+        console.log("[Favorites] height changed:", height, "count:", count);
     }
 
     // Current menu reference
