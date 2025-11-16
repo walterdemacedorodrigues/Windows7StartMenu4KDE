@@ -409,6 +409,7 @@ Item {
                     height: calculateFavoritesHeight()
                     dragEnabled: true
                     dropEnabled: true
+                    cellWidth: width
                     cellHeight: contentRoot.cellHeight
                     iconSize: contentRoot.iconSize
 
@@ -452,6 +453,7 @@ Item {
                     id: recentsGrid
                     width: parent.width
                     height: parent.height - favoritesGrid.height - 2
+                    cellWidth: width
                     cellHeight: contentRoot.cellHeight
                     iconSize: contentRoot.iconSize
                     favoritesModel: favoritesGrid.model
