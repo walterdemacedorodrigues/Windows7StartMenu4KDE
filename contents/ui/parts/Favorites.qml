@@ -23,8 +23,7 @@ FavoritesGridView {
     property int iconSize: 32
     property alias taskManagerBackend: taskManagerBackend
 
-    // Signals
-    signal keyNavDown()
+    // Signals (keyNavDown already defined in FavoritesGridView)
     signal menuClosed()
 
     // Current menu reference

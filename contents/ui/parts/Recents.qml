@@ -23,8 +23,7 @@ FavoritesGridView {
     property var favoritesModel: null
     property alias taskManagerBackend: taskManagerBackend
 
-    // Signals
-    signal keyNavUp()
+    // Signals (keyNavUp already defined in FavoritesGridView)
     signal menuClosed()
 
     // Models
