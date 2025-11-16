@@ -61,9 +61,9 @@ Item {
         visible: false
         width: Kirigami.Units.gridUnit * 10
         height: systemActionsColumn.height + (Kirigami.Units.smallSpacing * 2)
-        color: Kirigami.Theme.backgroundColor || "#232629"
+        color: Kirigami.Theme.backgroundColor
         border.width: 1
-        border.color: Kirigami.Theme.separatorColor || "#3c4043"
+        border.color: Kirigami.Theme.separatorColor
         radius: 4
 
         anchors.bottom: parent.top

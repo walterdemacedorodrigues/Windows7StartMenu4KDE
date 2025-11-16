@@ -532,7 +532,7 @@ Item {
         Rectangle {
             id: sidebar
             width: parent.width * 0.35
-            color: Qt.rgba(Kirigami.Theme.backgroundColor.r || 0.137, Kirigami.Theme.backgroundColor.g || 0.149, Kirigami.Theme.backgroundColor.b || 0.161, 0.8)
+            color: Kirigami.Theme.backgroundColor
             border.width: 0
             radius: 8
 
