@@ -137,6 +137,13 @@ PlasmoidItem {
 
         clip: false
 
+        // Background with consistent color
+        Rectangle {
+            anchors.fill: parent
+            color: Kirigami.Theme.backgroundColor
+            z: -1
+        }
+
         Parts.Avatar {
             id: floatingAvatar
 
@@ -243,7 +250,7 @@ PlasmoidItem {
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 2
                 Layout.maximumHeight: Kirigami.Units.gridUnit * 2
-                color: Kirigami.Theme.backgroundColor || "#232629"
+                color: Kirigami.Theme.backgroundColor
 
                 RowLayout {
                     anchors.fill: parent
