@@ -25,7 +25,7 @@ Item {
     property int cellHeight: 48
     property int iconSize: 32
     property alias searchField: searchField
-    property alias favoritesComponent: favoritesComponent
+    property alias favoritesComponent: favoritesContainer
     property alias allAppsGrid: allAppsGrid
     property alias runnerGrid: runnerGrid
     property alias mainColumn: mainColumn
@@ -376,9 +376,9 @@ Item {
             bottom: parent.bottom
         }
 
-        // Favorites Component - USANDO DADOS REAIS
-        Parts.RecentnFavorites {
-            id: favoritesComponent
+        // Favorites + Recents Container
+        Item {
+            id: favoritesContainer
             visible: showApps === 0 && !searching
             anchors {
                 top: parent.top
@@ -386,9 +386,94 @@ Item {
             }
             width: parent.width * 0.6
             height: parent.height
-            cellWidth: width
-            cellHeight: contentRoot.cellHeight
-            iconSize: contentRoot.iconSize
+
+            property alias model: favoritesGrid.model
+            function tryActivate(row, col) {
+                var favoritesRows = Math.ceil(favoritesGrid.count / Math.floor(width / favoritesGrid.cellWidth));
+                if (row < favoritesRows) {
+                    favoritesGrid.tryActivate(row, col);
+                } else {
+                    var adjustedRow = row - favoritesRows;
+                    recentsGrid.tryActivate(adjustedRow, col);
+                }
+            }
+
+            Column {
+                anchors.fill: parent
+                spacing: 0
+
+                // Favorites Grid
+                Parts.Favorites {
+                    id: favoritesGrid
+                    width: parent.width
+                    height: calculateFavoritesHeight()
+                    dragEnabled: true
+                    dropEnabled: true
+                    cellWidth: parent.width
+                    cellHeight: contentRoot.cellHeight
+                    iconSize: contentRoot.iconSize
+
+                    function calculateFavoritesHeight() {
+                        var favoritesRows = Math.ceil(count / Math.floor(width / cellWidth));
+                        var recentsRows = Math.ceil(recentsGrid.count / Math.floor(width / cellWidth));
+                        var minRecentsHeight = cellHeight * 2;
+                        var availableHeight = parent.height - 2; // 2px separator
+                        var favHeight = Math.min((favoritesRows * cellHeight), availableHeight - minRecentsHeight);
+                        return favHeight > 0 ? favHeight : 0;
+                    }
+
+                    onCountChanged: Qt.callLater(function() { height = calculateFavoritesHeight(); })
+
+                    onKeyNavDown: {
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = 0;
+                    }
+
+                    onMenuClosed: {
+                        if (typeof root !== "undefined" && root.toggle) {
+                            root.toggle();
+                        } else if (typeof kicker !== "undefined") {
+                            kicker.expanded = false;
+                        }
+                    }
+                }
+
+                // Separator
+                Rectangle {
+                    width: parent.width * 0.9
+                    height: 2
+                    color: Kirigami.Theme.textColor || "#eff0f1"
+                    opacity: 0.3
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: favoritesGrid.count > 0
+                }
+
+                // Recents Grid
+                Parts.Recents {
+                    id: recentsGrid
+                    width: parent.width
+                    height: parent.height - favoritesGrid.height - 2
+                    cellWidth: parent.width
+                    cellHeight: contentRoot.cellHeight
+                    iconSize: contentRoot.iconSize
+                    favoritesModel: favoritesGrid.model
+
+                    onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
+
+                    onKeyNavUp: {
+                        favoritesGrid.forceActiveFocus();
+                        favoritesGrid.currentIndex = favoritesGrid.count - 1;
+                    }
+
+                    onMenuClosed: {
+                        if (typeof root !== "undefined" && root.toggle) {
+                            root.toggle();
+                        } else if (typeof kicker !== "undefined") {
+                            kicker.expanded = false;
+                        }
+                    }
+                }
+            }
         }
 
         // Apps Grid Container
