@@ -26,6 +26,14 @@ FavoritesGridView {
     // Signals (keyNavDown already defined in FavoritesGridView)
     signal menuClosed()
 
+    // Debug logging
+    onWidthChanged: {
+        console.log("[Favorites] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth));
+    }
+    onCellWidthChanged: {
+        console.log("[Favorites] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth));
+    }
+
     // Current menu reference
     property QtObject currentMenu: null
 
