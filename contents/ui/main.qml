@@ -14,6 +14,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.ksvg 1.0 as KSvg
 import org.kde.coreaddons 1.0 as KCoreAddons
 import Qt5Compat.GraphicalEffects
+import "parts" as Parts
 
 PlasmoidItem {
     id: kicker
@@ -334,74 +335,33 @@ PlasmoidItem {
                 }
             }
 
-            Rectangle {
+            Parts.Search {
                 id: searchBar
-                Layout.fillWidth: true
-                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.5
-                Layout.minimumHeight: Kirigami.Units.gridUnit * 2.5
-                Layout.maximumHeight: Kirigami.Units.gridUnit * 2.5
-                color: Kirigami.Theme.backgroundColor || "#232629"
 
-                PlasmaComponents3.TextField {
-                    id: searchField
-                    width: parent.width * 0.6 * 0.9
-                    height: Kirigami.Units.gridUnit * 1.8
-                    anchors {
-                        left: parent.left
-                        leftMargin: parent.width * 0.6 * 0.05
-                        verticalCenter: parent.verticalCenter
-                    }
+                menuContentRef: menuContent
+                runnerModelRef: runnerModel
+                currentShowApps: root.showApps
 
-                    placeholderText: i18n("🔍 Type here to search ...")
+                onSearchTextChanged: (text) => {
+                    root.searching = (text !== "");
+                }
 
-                    onTextChanged: {
-                        root.searching = (text !== "");
+                onEscapePressed: {
+                    root.toggle();
+                }
 
-                        if (typeof runnerModel !== "undefined") {
-                            runnerModel.query = text;
+                onNavigateToResults: {
+                    if (root.searching && typeof menuContent !== "undefined" && menuContent && menuContent.runnerGrid) {
+                        if (menuContent.runnerGrid.tryActivate) {
+                            menuContent.runnerGrid.tryActivate(0, 0);
                         }
-
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.onSearchTextChanged) {
-                            menuContent.onSearchTextChanged(text);
+                    } else if (root.showApps === 0 && typeof menuContent !== "undefined" && menuContent && menuContent.favoritesComponent) {
+                        if (menuContent.favoritesComponent.tryActivate) {
+                            menuContent.favoritesComponent.tryActivate(0, 0);
                         }
-                    }
-
-                    function backspace() {
-                        if (!visible) return;
-                        focus = true;
-                        text = text.slice(0, -1);
-                    }
-
-                    function appendText(newText) {
-                        if (!visible) return;
-                        focus = true;
-                        text = text + newText;
-                    }
-
-                    function clear() {
-                        text = "";
-                    }
-
-                    Keys.onPressed: (event) => {
-                        if (event.key === Qt.Key_Escape) {
-                            event.accepted = true;
-                            root.searching ? clear() : root.toggle();
-                        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
-                            event.accepted = true;
-
-                            if (root.searching && typeof menuContent !== "undefined" && menuContent && menuContent.runnerGrid) {
-                                if (menuContent.runnerGrid.tryActivate) {
-                                    menuContent.runnerGrid.tryActivate(0, 0);
-                                }
-                            } else if (root.showApps === 0 && typeof menuContent !== "undefined" && menuContent && menuContent.favoritesComponent) {
-                                if (menuContent.favoritesComponent.tryActivate) {
-                                    menuContent.favoritesComponent.tryActivate(0, 0);
-                                }
-                            } else if (typeof menuContent !== "undefined" && menuContent && menuContent.allAppsGrid) {
-                                if (menuContent.allAppsGrid.tryActivate) {
-                                    menuContent.allAppsGrid.tryActivate(0, 0);
-                                }
-                            }
+                    } else if (typeof menuContent !== "undefined" && menuContent && menuContent.allAppsGrid) {
+                        if (menuContent.allAppsGrid.tryActivate) {
+                            menuContent.allAppsGrid.tryActivate(0, 0);
                         }
                     }
                 }
@@ -638,7 +598,7 @@ PlasmoidItem {
             if (event.key === Qt.Key_Escape) {
                 event.accepted = true;
                 if (root.searching) {
-                    searchField.clear();
+                    searchBar.clear();
                 } else {
                     kicker.expanded = false;
                 }
@@ -647,11 +607,11 @@ PlasmoidItem {
 
             if (event.key === Qt.Key_Backspace) {
                 event.accepted = true;
-                searchField.backspace();
+                searchBar.backspace();
             } else if (event.text !== "" && event.text.trim() !== "") {
                 event.accepted = true;
-                searchField.focus = true;
-                searchField.appendText(event.text);
+                searchBar.focusSearchField();
+                searchBar.appendText(event.text);
             }
         }
 
