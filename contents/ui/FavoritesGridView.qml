@@ -187,6 +187,14 @@ FocusScope {
 
             property int iconSize: Kirigami.Units.iconSizes.huge
 
+            // Debug logging
+            onCellWidthChanged: {
+                console.log("[GridView] cellWidth changed:", cellWidth, "width:", width, "columns:", Math.floor(width / cellWidth));
+            }
+            onWidthChanged: {
+                console.log("[GridView] width changed:", width, "cellWidth:", cellWidth, "columns:", Math.floor(width / cellWidth));
+            }
+
             property bool animating: false
             property int animationDuration: itemGrid.dropEnabled ? resetAnimationDurationTimer.interval : 0
 
