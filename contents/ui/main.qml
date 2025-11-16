@@ -74,7 +74,7 @@ PlasmoidItem {
         Layout.preferredHeight: Kirigami.Units.gridUnit * 34
 
         property int showApps: 0
-        property bool searching: searchField.text !== ""
+        property bool searching: searchBar.text !== ""
         property bool systemActionInProgress: false
         property string currentAction: ""
 
@@ -138,144 +138,15 @@ PlasmoidItem {
 
         clip: false
 
-        Rectangle {
+        Parts.Avatar {
             id: floatingAvatar
-            width: Kirigami.Units.gridUnit * 3
-            height: Kirigami.Units.gridUnit * 3
-            radius: width / 2
 
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: Kirigami.Units.smallSpacing
+            userFaceIconUrl: kuser.faceIconUrl
+            isExpanded: kicker.expanded
+            executable: kicker.executable
 
-            color: "transparent"
-            border.width: 2
-            border.color: Kirigami.Theme.highlightColor || "#3daee9"
-
-            z: 99999
-
-            visible: kicker.expanded
-
-            Rectangle {
-                anchors.fill: parent
-                anchors.topMargin: 4
-                anchors.leftMargin: 2
-                radius: parent.radius
-                color: Qt.rgba(0, 0, 0, 0.4)
-                z: -1
-            }
-
-            Rectangle {
-                id: mask
-                width: parent.width - 4
-                height: parent.height - 4
-                anchors.centerIn: parent
-                visible: false
-                radius: width / 2
-            }
-
-            Image {
-                id: userImage
-                width: parent.width - 4
-                height: parent.height - 4
-                anchors.centerIn: parent
-                source: kuser.faceIconUrl
-                cache: false
-                visible: source !== ""
-                fillMode: Image.PreserveAspectCrop
-
-                layer.enabled: true
-                layer.effect: OpacityMask {
-                    maskSource: mask
-                }
-
-                opacity: kicker.expanded ? 1.0 : 0.8
-                scale: kicker.expanded ? 1.0 : 0.95
-
-                Behavior on opacity {
-                    PropertyAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
-                Behavior on scale {
-                    PropertyAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
-            }
-
-            Kirigami.Icon {
-                id: userIcon
-                width: parent.width - 8
-                height: parent.height - 8
-                anchors.centerIn: parent
-                source: "user-identity"
-                color: Kirigami.Theme.textColor || "#eff0f1"
-                visible: kuser.faceIconUrl === ""
-
-                opacity: kicker.expanded ? 1.0 : 0.8
-                scale: kicker.expanded ? 1.0 : 0.95
-
-                Behavior on opacity {
-                    PropertyAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
-
-                Behavior on scale {
-                    PropertyAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-
-                onClicked: {
-                    var executable = kicker.executable;
-                    if (executable) {
-                        executable.exec("systemsettings5 kcm_users");
-                    }
-                    root.toggle();
-                }
-
-                onEntered: {
-                    floatingAvatar.scale = 1.1;
-                    floatingAvatar.border.color = Kirigami.Theme.hoverColor || "#93cee9";
-                }
-
-                onExited: {
-                    floatingAvatar.scale = 1.0;
-                    floatingAvatar.border.color = Kirigami.Theme.highlightColor || "#3daee9";
-                }
-            }
-
-            Behavior on scale {
-                PropertyAnimation {
-                    duration: 150
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: 150
-                }
-            }
-
-            PlasmaCore.ToolTipArea {
-                anchors.fill: parent
-                active: true
-                mainText: i18n("User Settings")
-                subText: i18n("Click to open user account settings")
+            onClicked: {
+                root.toggle();
             }
         }
 
