@@ -18,7 +18,7 @@ FavoritesGridView {
 
     // Properties
     property int cellHeight: 48
-    property int cellWidth: width
+    // cellWidth is already an alias in FavoritesGridView - don't override it
     property int iconSize: 32
     property var favoritesModel: null
     property alias taskManagerBackend: taskManagerBackend
