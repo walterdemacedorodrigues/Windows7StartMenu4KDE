@@ -206,8 +206,11 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
+        console.log("[Favorites] Key pressed:", event.key, "Qt.Key_Right:", Qt.Key_Right, "currentMenu:", currentMenu);
+
         // Close submenu with Left or Escape
         if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
+            console.log("[Favorites] Closing submenu");
             event.accepted = true;
             currentMenu.close();
             currentMenu.destroy();
@@ -220,7 +223,12 @@ FavoritesGridView {
             event.accepted = true;
             return;
         }
+
+        // DON'T capture Key_Right here - let delegate handle it for submenus
+        // DON'T capture Key_Up here - let FavoritesGridView keyNavUp signal handle it
+
         if (event.key === Qt.Key_Down && currentIndex >= (count - Math.floor(width / cellWidth))) {
+            console.log("[Favorites] KeyNavDown to Recents");
             event.accepted = true;
             favoritesGrid.keyNavDown();
         }
