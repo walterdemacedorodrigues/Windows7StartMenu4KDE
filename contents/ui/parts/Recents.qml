@@ -6,8 +6,8 @@
 import QtQuick 2.4
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.private.kicker 0.1 as Kicker
-import org.kde.plasma.private.taskmanager as TaskManagerApplet
 import ".."
+import "../functions" as Functions
 
 /**
  * Recent/Frequent apps grid component for the Windows 7 Start Menu
@@ -20,7 +20,6 @@ FavoritesGridView {
     // cellWidth and cellHeight are aliases in FavoritesGridView - don't override them
     property int iconSize: 32
     property var favoritesModel: null
-    property alias taskManagerBackend: taskManagerBackend
 
     // Signals (keyNavUp already defined in FavoritesGridView)
     signal menuClosed()
@@ -35,8 +34,9 @@ FavoritesGridView {
         id: appsWithRecentFiles
     }
 
-    TaskManagerApplet.Backend {
-        id: taskManagerBackend
+    // Recent Files Helper
+    Functions.RecentFiles {
+        id: recentFilesHelper
     }
 
     // State
@@ -104,20 +104,7 @@ FavoritesGridView {
 
     // Get recent files count for app
     function getRecentFilesForApp(launcherUrl) {
-        if (!launcherUrl || !taskManagerBackend) return 0;
-
-        try {
-            var recentActions = taskManagerBackend.recentDocumentActions(launcherUrl, recentsGrid);
-            var placesActions = taskManagerBackend.placesActions(launcherUrl, false, recentsGrid);
-
-            var totalCount = 0;
-            if (recentActions && recentActions.length > 0) totalCount += recentActions.length;
-            if (placesActions && placesActions.length > 0) totalCount += placesActions.length;
-
-            return totalCount;
-        } catch (e) {
-            return 0;
-        }
+        return recentFilesHelper.getRecentFilesCount(launcherUrl, recentsGrid);
     }
 
     // Validate application item
@@ -263,62 +250,6 @@ FavoritesGridView {
         return false;
     }
 
-    // Create menu from actions
-    function createMenuFromActions(actions, parent, title) {
-        var menu = Qt.createQmlObject(`
-            import org.kde.plasma.extras 2.0 as PlasmaExtras
-            PlasmaExtras.Menu {
-                placement: PlasmaExtras.Menu.RightPosedTopAlignedPopup
-            }
-        `, parent);
-
-        if (!menu) return null;
-
-        if (title && title !== "") {
-            var headerItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { enabled: false }
-            `, menu);
-            headerItem.text = title;
-            menu.addMenuItem(headerItem);
-
-            var separatorItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { separator: true }
-            `, menu);
-            menu.addMenuItem(separatorItem);
-        }
-
-        if (actions && actions.length > 0) {
-            for (var i = 0; i < actions.length; i++) {
-                var action = actions[i];
-                if (!action || typeof action !== "object") continue;
-
-                var menuItem = Qt.createQmlObject(`
-                    import org.kde.plasma.extras 2.0 as PlasmaExtras
-                    PlasmaExtras.MenuItem {}
-                `, menu);
-
-                menuItem.text = action.text || "";
-                menuItem.icon = action.icon || "";
-
-                if (action.trigger && typeof action.trigger === "function") {
-                    menuItem.clicked.connect(action.trigger);
-                }
-
-                menu.addMenuItem(menuItem);
-            }
-        } else {
-            var noItemsItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { enabled: false }
-            `, menu);
-            noItemsItem.text = i18n("No recent items");
-            menu.addMenuItem(noItemsItem);
-        }
-
-        return menu;
-    }
 
     // Show recent files menu
     function showRecentFilesMenu(index, visualParent) {
@@ -331,26 +262,16 @@ FavoritesGridView {
         }
 
         try {
-            var recentActions = taskManagerBackend.recentDocumentActions(item.launcherUrl, recentsGrid);
-            var placesActions = taskManagerBackend.placesActions(item.launcherUrl, false, recentsGrid);
+            var result = recentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
 
-            var allActions = [];
-            var menuTitle = "";
-
-            if (placesActions && placesActions.length > 0) {
-                allActions = placesActions;
-                menuTitle = i18n("Recent Places");
-            } else if (recentActions && recentActions.length > 0) {
-                allActions = recentActions;
-                menuTitle = i18n("Recent Files");
-            }
-
-            currentMenu = createMenuFromActions(allActions, visualParent, menuTitle);
-            if (currentMenu) {
-                currentMenu.visualParent = visualParent;
-                currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                currentMenu.openRelative();
-                console.log("[Recents] ✓ Menu opened for", item.display, "with", allActions.length, "items");
+            if (result.count > 0) {
+                currentMenu = recentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
+                if (currentMenu) {
+                    currentMenu.visualParent = visualParent;
+                    currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
+                    currentMenu.openRelative();
+                    console.log("[Recents] ✓ Menu opened for", item.display, "with", result.count, "items");
+                }
             }
         } catch (e) {
             console.log("[Recents] ✗ Menu error:", e);
