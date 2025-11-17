@@ -455,10 +455,7 @@ FocusScope {
             }
 
             Keys.onLeftPressed: event => {
-                                    var columns = Math.floor(width / cellWidth);
-
-                                    // Only navigate left if we have multiple columns
-                                    if (columns > 1 && itemGrid.currentCol() !== 0) {
+                                    if (itemGrid.currentCol() !== 0) {
                                         event.accepted = true;
                                         moveCurrentIndexLeft();
                                     } else {
@@ -469,8 +466,7 @@ FocusScope {
             Keys.onRightPressed: event => {
                                      var columns = Math.floor(width / cellWidth);
 
-                                     // Only navigate right if we have multiple columns
-                                     if (columns > 1 && itemGrid.currentCol() !== columns - 1 && currentIndex !== count -1) {
+                                     if (itemGrid.currentCol() !== columns - 1 && currentIndex !== count -1) {
                                          event.accepted = true;
                                          moveCurrentIndexRight();
                                      } else {
