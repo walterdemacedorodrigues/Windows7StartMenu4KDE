@@ -260,6 +260,11 @@ FocusScope {
                     var actionList = hasActionList ? model.actionList : [];
                     var favModel = GridView.view.model.favoritesModel;
 
+                    // TEST: Check what model.actionList contains
+                    console.log("[TEST.openActionMenu]", model.display, "→ hasActionList:", hasActionList);
+                    console.log("[TEST.openActionMenu]", model.display, "→ model.actionList type:", typeof model.actionList, "value:", model.actionList);
+                    console.log("[TEST.openActionMenu]", model.display, "→ actionList array length:", actionList ? actionList.length : "null");
+
                     // fillActionMenu already adds "Remove from Favorites" or "Add to Favorites" automatically
                     Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
 
