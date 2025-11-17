@@ -270,6 +270,12 @@ FocusScope {
                 function actionTriggered(actionId, actionArgument) {
                     // Tools.triggerAction handles all actions including favorites automatically
                     var close = (Tools.triggerAction(GridView.view.model, model.index, actionId, actionArgument) === true);
+
+                    // Don't close menu for favorite actions
+                    if (actionId && (actionId.indexOf("_kicker_favorite_") === 0)) {
+                        return;
+                    }
+
                     if (close) {
                         var rootItem = delegateItem;
                         while (rootItem.parent && rootItem.parent.toString().indexOf("PlasmoidItem") === -1) {
