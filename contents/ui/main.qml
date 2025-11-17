@@ -138,7 +138,7 @@ PlasmoidItem {
 
         clip: false
 
-        Parts.Avatar {
+        Parts.PersonalPortrait {
             id: floatingAvatar
 
             userFaceIconUrl: kuser.faceIconUrl
@@ -206,7 +206,7 @@ PlasmoidItem {
                 }
             }
 
-            Parts.Search {
+            Parts.SearchBar {
                 id: searchBar
 
                 menuContentRef: menuContent
@@ -405,7 +405,7 @@ PlasmoidItem {
                         Layout.fillWidth: true
                     }
 
-                    Parts.Power {
+                    Parts.PowerButtons {
                         id: powerButtons
 
                         actionInProgress: root.systemActionInProgress

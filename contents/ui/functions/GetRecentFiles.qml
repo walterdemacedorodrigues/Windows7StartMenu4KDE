@@ -8,11 +8,11 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.private.taskmanager as TaskManagerApplet
 
 /**
- * Recent Files Helper Component
+ * Get Recent Files Helper Component
  * Centralizes all logic for managing recent files/places per application
  */
 QtObject {
-    id: recentFilesHelper
+    id: getRecentFilesHelper
 
     // Required: TaskManager backend for accessing recent files
     property var taskManagerBackend: TaskManagerApplet.Backend {}
