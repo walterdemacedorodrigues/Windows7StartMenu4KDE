@@ -25,20 +25,6 @@ FavoritesGridView {
     // Signals (keyNavUp already defined in FavoritesGridView)
     signal menuClosed()
 
-    // Current menu reference (defined later but referenced here for keyboard handler)
-    // property QtObject currentMenu: null (already defined below)
-
-    // Keyboard handler for closing submenus
-    Keys.onPressed: (event) => {
-        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
-            event.accepted = true;
-            currentMenu.close();
-            currentMenu.destroy();
-            currentMenu = null;
-            recentsGrid.forceActiveFocus();
-        }
-    }
-
     // Models
     Kicker.RecentUsageModel {
         id: frequentAppsModel
@@ -414,6 +400,16 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
+        // Close submenu with Left or Escape
+        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
+            event.accepted = true;
+            currentMenu.close();
+            currentMenu.destroy();
+            currentMenu = null;
+            recentsGrid.forceActiveFocus();
+            return;
+        }
+
         if (event.modifiers & Qt.ControlModifier || event.modifiers & Qt.ShiftModifier) {
             event.accepted = true;
             return;
