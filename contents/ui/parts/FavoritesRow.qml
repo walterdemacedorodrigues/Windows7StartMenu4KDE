@@ -27,14 +27,102 @@ FavoritesGridView {
     // Current menu reference
     property QtObject currentMenu: null
 
+    // External model reference (set by parent)
+    property var externalFavoritesModel: null
+
+    // Local model with recent files data
+    ListModel {
+        id: favoritesWithRecentFiles
+    }
+
     // Get Recent Files Helper
     Functions.GetRecentFiles {
         id: getRecentFilesHelper
     }
 
+    // Build local model with recent files data
+    function buildFavoritesModel() {
+        favoritesWithRecentFiles.clear();
+
+        if (!externalFavoritesModel) {
+            console.log("[Favorites] No external model");
+            return;
+        }
+
+        console.log("[Favorites] Building model from", externalFavoritesModel.count, "favorites");
+
+        for (var i = 0; i < externalFavoritesModel.count; i++) {
+            try {
+                var favIndex = externalFavoritesModel.index(i, 0);
+
+                // Extract data from external model
+                var display = externalFavoritesModel.data(favIndex, Qt.DisplayRole) || "";
+                var decoration = externalFavoritesModel.data(favIndex, Qt.DecorationRole);
+                var favoriteId = externalFavoritesModel.data(favIndex, Qt.UserRole + 2) || "";
+                var url = externalFavoritesModel.data(favIndex, Qt.UserRole + 1) || "";
+
+                // Extract launcher URL (with "applications:" prefix)
+                var desktopFile = externalFavoritesModel.data(favIndex, Qt.UserRole + 3) || "";
+                var launcherUrl = "";
+
+                if (desktopFile && desktopFile.indexOf(".desktop") !== -1) {
+                    launcherUrl = "applications:" + desktopFile;
+                } else if (url && url.indexOf(".desktop") !== -1) {
+                    launcherUrl = url;
+                } else if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
+                    launcherUrl = favoriteId.indexOf("applications:") === 0 ? favoriteId : "applications:" + favoriteId;
+                }
+
+                // Get recent files info
+                var recentFilesCount = 0;
+                var hasRecentFiles = false;
+                if (launcherUrl) {
+                    recentFilesCount = getRecentFilesHelper.getRecentFilesCount(launcherUrl, favoritesGrid);
+                    hasRecentFiles = recentFilesCount > 0;
+                }
+
+                var iconValue = (typeof decoration === "object" && decoration !== null) ? "" : decoration || "";
+
+                // Append to local model
+                favoritesWithRecentFiles.append({
+                    "display": display,
+                    "decoration": iconValue,
+                    "name": display,
+                    "icon": iconValue,
+                    "url": url,
+                    "favoriteId": favoriteId,
+                    "launcherUrl": launcherUrl,
+                    "hasRecentFiles": hasRecentFiles,
+                    "recentFilesCount": recentFilesCount,
+                    "actionList": [
+                        {
+                            "text": i18n("Remove from Favorites"),
+                            "icon": "bookmark-remove",
+                            "actionId": "_kicker_favorite_remove",
+                            "actionArgument": {
+                                "favoriteModel": externalFavoritesModel,
+                                "favoriteId": launcherUrl || favoriteId
+                            }
+                        }
+                    ],
+                    "hasActionList": true,
+                    "originalIndex": i
+                });
+
+                console.log("[Favorites] [" + i + "]", display, "→ hasRecentFiles:", hasRecentFiles, "count:", recentFilesCount);
+            } catch (e) {
+                console.log("[Favorites] Error processing favorite", i, ":", e);
+                continue;
+            }
+        }
+
+        console.log("[Favorites] Model built with", favoritesWithRecentFiles.count, "items");
+    }
+
     // Show recent files menu for a favorite item
-    function showRecentFilesMenu(favoriteUrl, visualParent) {
-        if (!favoriteUrl) return;
+    function showRecentFilesMenu(index, visualParent) {
+        var item = favoritesWithRecentFiles.get(index);
+        if (!item || !item.launcherUrl) return;
 
         // Destroy previous menu
         if (currentMenu) {
@@ -43,7 +131,7 @@ FavoritesGridView {
         }
 
         try {
-            var result = getRecentFilesHelper.getRecentFilesActions(favoriteUrl, favoritesGrid);
+            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, favoritesGrid);
 
             if (result.count > 0) {
                 currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
@@ -51,91 +139,56 @@ FavoritesGridView {
                     currentMenu.visualParent = visualParent;
                     currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
                     currentMenu.openRelative();
+                    console.log("[Favorites] ✓ Menu opened for", item.display, "with", result.count, "items");
                 }
             }
         } catch (e) {
-            // Handle errors silently
+            console.log("[Favorites] ✗ Menu error:", e);
         }
-    }
-
-
-    // Update recent files count for favorites
-    function updateRecentFilesCount() {
-        console.log("[Favorites.updateRecentFilesCount] ===== START =====");
-        if (!model) {
-            console.log("[Favorites.updateRecentFilesCount] No model!");
-            return;
-        }
-
-        console.log("[Favorites.updateRecentFilesCount] Processing", model.count, "favorites");
-
-        for (var f = 0; f < model.count; f++) {
-            try {
-                var favoriteUrl = getRecentFilesHelper.extractFavoriteLauncherUrl(model, f);
-                var favoriteDisplay = model.data(model.index(f, 0), Qt.DisplayRole) || "";
-
-                console.log("[Favorites.updateRecentFilesCount] [" + f + "]", favoriteDisplay, "URL:", favoriteUrl);
-
-                if (favoriteUrl) {
-                    var totalCount = getRecentFilesHelper.getRecentFilesCount(favoriteUrl, favoritesGrid);
-                    var hasRecentFiles = totalCount > 0;
-
-                    console.log("[Favorites.updateRecentFilesCount] [" + f + "]", favoriteDisplay, "→ hasRecentFiles:", hasRecentFiles, "count:", totalCount);
-
-                    if (typeof model.setData === "function") {
-                        var favIndex = model.index(f, 0);
-                        var setResult1 = model.setData(favIndex, hasRecentFiles, Qt.UserRole + 10);
-                        var setResult2 = model.setData(favIndex, totalCount, Qt.UserRole + 11);
-                        console.log("[Favorites.updateRecentFilesCount] [" + f + "] setData results:", setResult1, setResult2);
-
-                        // Verify it was set
-                        var verifyHasRecent = model.data(favIndex, Qt.UserRole + 10);
-                        console.log("[Favorites.updateRecentFilesCount] [" + f + "] Verify hasRecentFiles after setData:", verifyHasRecent);
-                    } else {
-                        console.log("[Favorites.updateRecentFilesCount] model.setData is NOT a function!");
-                    }
-                } else {
-                    console.log("[Favorites.updateRecentFilesCount] [" + f + "] No valid URL found for", favoriteDisplay);
-                }
-            } catch (e) {
-                console.log("[Favorites.updateRecentFilesCount] Exception:", e);
-                continue;
-            }
-        }
-
-        console.log("[Favorites.updateRecentFilesCount] ===== END =====");
     }
 
     // Grid configuration
     focus: true
     width: parent.width
+    model: favoritesWithRecentFiles
 
     // Handle item activation
     Connections {
         target: favoritesGrid
         function onItemActivated(index, actionId, argument) {
+            if (actionId && actionId.indexOf("_kicker_favorite_") === 0) {
+                var item = favoritesWithRecentFiles.get(index);
+                if (item && argument && argument.favoriteModel && argument.favoriteId) {
+                    var favoriteModel = argument.favoriteModel;
+                    var favoriteId = argument.favoriteId;
+
+                    if (actionId === "_kicker_favorite_remove" && typeof favoriteModel.removeFavorite === "function") {
+                        favoriteModel.removeFavorite(favoriteId);
+                        buildFavoritesModel();
+                        return;
+                    }
+                }
+            }
+
             if (!actionId || actionId === "") {
                 favoritesGrid.menuClosed();
             }
         }
 
         function onSubmenuRequested(index, x, y) {
-            if (model) {
-                var favoriteUrl = getRecentFilesHelper.extractFavoriteLauncherUrl(model, index);
-
-                if (favoriteUrl) {
-                    var visualItem = null;
-                    for (var i = 0; i < favoritesGrid.contentItem.children.length; i++) {
-                        var child = favoritesGrid.contentItem.children[i];
-                        if (child.itemIndex === index) {
-                            visualItem = child;
-                            break;
-                        }
+            var item = favoritesWithRecentFiles.get(index);
+            if (item && item.hasRecentFiles) {
+                var visualItem = null;
+                for (var i = 0; i < favoritesGrid.contentItem.children.length; i++) {
+                    var child = favoritesGrid.contentItem.children[i];
+                    if (child.itemIndex === index) {
+                        visualItem = child;
+                        break;
                     }
-
-                    console.log("[Favorites] ✓ Opening submenu for index:", index);
-                    showRecentFilesMenu(favoriteUrl, visualItem || favoritesGrid);
                 }
+
+                console.log("[Favorites] ✓ Opening submenu for index:", index);
+                showRecentFilesMenu(index, visualItem || favoritesGrid);
             }
         }
     }
@@ -170,14 +223,27 @@ FavoritesGridView {
         }
     }
 
-    // Update recent files when model changes
-    onModelChanged: {
-        if (model) {
-            Qt.callLater(updateRecentFilesCount);
+    // Watch external model for changes
+    onExternalFavoritesModelChanged: {
+        if (externalFavoritesModel) {
+            Qt.callLater(buildFavoritesModel);
+        }
+    }
+
+    // Watch for external model count changes
+    Connections {
+        target: externalFavoritesModel
+        function onCountChanged() {
+            Qt.callLater(buildFavoritesModel);
+        }
+        function onDataChanged() {
+            Qt.callLater(buildFavoritesModel);
         }
     }
 
     Component.onCompleted: {
-        updateRecentFilesCount();
+        if (externalFavoritesModel) {
+            buildFavoritesModel();
+        }
     }
 }

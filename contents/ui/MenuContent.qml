@@ -387,7 +387,7 @@ Item {
             width: parent.width * 0.6
             height: parent.height
 
-            property alias model: favoritesGrid.model
+            property alias model: favoritesGrid.externalFavoritesModel
             function tryActivate(row, col) {
                 var favoritesRows = Math.ceil(favoritesGrid.count / Math.floor(width / favoritesGrid.cellWidth));
                 if (row < favoritesRows) {
