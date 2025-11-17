@@ -21,7 +21,7 @@ Rectangle {
     Layout.minimumHeight: Kirigami.Units.gridUnit * 2.5
     Layout.maximumHeight: Kirigami.Units.gridUnit * 2.5
 
-    color: Kirigami.Theme.backgroundColor
+    color: "transparent"
 
     // Properties
     property alias text: searchField.text
