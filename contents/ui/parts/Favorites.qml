@@ -28,6 +28,17 @@ FavoritesGridView {
     // Current menu reference
     property QtObject currentMenu: null
 
+    // Keyboard handler for closing submenus
+    Keys.onPressed: (event) => {
+        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
+            event.accepted = true;
+            currentMenu.close();
+            currentMenu.destroy();
+            currentMenu = null;
+            favoritesGrid.forceActiveFocus();
+        }
+    }
+
     // TaskManager backend for recent files
     TaskManagerApplet.Backend {
         id: taskManagerBackend
