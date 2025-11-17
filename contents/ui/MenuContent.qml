@@ -431,12 +431,12 @@ Item {
 
                     onKeyNavUp: {
                         console.log("[Favorites.onKeyNavUp] Trying to go to All Apps, showApps:", contentRoot.showApps);
-                        // Switch to All Apps view
+                        // Switch to All Apps view and go to LAST item (wrap around)
                         contentRoot.showApps = 1;
                         Qt.callLater(function() {
-                            console.log("[Favorites.onKeyNavUp] Focusing All Apps after showApps change");
+                            console.log("[Favorites.onKeyNavUp] Focusing All Apps after showApps change, going to last item");
                             allAppsGrid.forceActiveFocus();
-                            allAppsGrid.currentIndex = 0;
+                            allAppsGrid.currentIndex = allAppsGrid.count - 1;
                         });
                     }
 
