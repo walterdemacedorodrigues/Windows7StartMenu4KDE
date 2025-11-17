@@ -368,10 +368,14 @@ FocusScope {
                 }
 
                 Keys.onPressed: event => {
+                    console.log("[FavGridView.Delegate] Key pressed:", event.key, "hasRecentFiles:", hasRecentFiles, "Qt.Key_Right:", Qt.Key_Right);
+
                     if (event.key === Qt.Key_Menu && hasActionList) {
+                        console.log("[FavGridView.Delegate] Opening action menu");
                         event.accepted = true;
                         openActionMenu(delegateItem);
                     } else if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) {
+                        console.log("[FavGridView.Delegate] Enter/Return pressed");
                         event.accepted = true;
                         if ("trigger" in GridView.view.model) {
                             GridView.view.model.trigger(index, "", null);
@@ -381,9 +385,14 @@ FocusScope {
                         }
                         itemGrid.itemActivated(index, "", null);
                     } else if (event.key === Qt.Key_Right && hasRecentFiles) {
+                        console.log("[FavGridView.Delegate] Right arrow pressed - opening submenu, index:", delegateItem.itemIndex);
                         event.accepted = true;
                         // Passar a referência do próprio delegateItem
                         itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
+                    } else if (event.key === Qt.Key_Right && !hasRecentFiles) {
+                        console.log("[FavGridView.Delegate] Right arrow but no recent files - emit keyNavRight");
+                        event.accepted = false; // Let parent handle it
+                        itemGrid.keyNavRight();
                     }
                 }
             }

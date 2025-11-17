@@ -430,13 +430,14 @@ Item {
                     }
 
                     onKeyNavUp: {
-                        console.log("[Favorites.onKeyNavUp] Trying to go to All Apps, visible:", allAppsGrid.visible);
-                        // Go to All Apps if available
-                        if (allAppsGrid.visible) {
-                            console.log("[Favorites.onKeyNavUp] Focusing All Apps");
+                        console.log("[Favorites.onKeyNavUp] Trying to go to All Apps, showApps:", contentRoot.showApps);
+                        // Switch to All Apps view
+                        contentRoot.showApps = 1;
+                        Qt.callLater(function() {
+                            console.log("[Favorites.onKeyNavUp] Focusing All Apps after showApps change");
                             allAppsGrid.forceActiveFocus();
                             allAppsGrid.currentIndex = 0;
-                        }
+                        });
                     }
 
                     onKeyNavRight: {
@@ -477,7 +478,7 @@ Item {
                     onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
                     onKeyNavUp: {
-                        console.log("[Recents.onKeyNavUp] currentIndex:", currentIndex, "favCount:", favoritesGrid.count, "allAppsVisible:", allAppsGrid.visible);
+                        console.log("[Recents.onKeyNavUp] currentIndex:", currentIndex, "favCount:", favoritesGrid.count, "showApps:", contentRoot.showApps);
                         // If at top of Recents, check if we should go to Favorites or All Apps
                         if (currentIndex < Math.floor(width / cellWidth)) {
                             // At top row of Recents
@@ -485,10 +486,14 @@ Item {
                                 console.log("[Recents.onKeyNavUp] Going to Favorites");
                                 favoritesGrid.forceActiveFocus();
                                 favoritesGrid.currentIndex = favoritesGrid.count - 1;
-                            } else if (allAppsGrid.visible) {
+                            } else {
+                                // No favorites, go to All Apps
                                 console.log("[Recents.onKeyNavUp] Going to All Apps (no favorites)");
-                                allAppsGrid.forceActiveFocus();
-                                allAppsGrid.currentIndex = 0;
+                                contentRoot.showApps = 1;
+                                Qt.callLater(function() {
+                                    allAppsGrid.forceActiveFocus();
+                                    allAppsGrid.currentIndex = 0;
+                                });
                             }
                         } else {
                             console.log("[Recents.onKeyNavUp] Going to Favorites (not at top)");
@@ -539,6 +544,18 @@ Item {
                     iconSize: contentRoot.iconSize
                     enabled: parent.visible
                     z: enabled ? 5 : -1
+
+                    onKeyNavDown: {
+                        console.log("[AllApps.onKeyNavDown] Going back to Favorites/Recents");
+                        // Switch back to Favorites/Recents view
+                        contentRoot.showApps = 0;
+                        Qt.callLater(function() {
+                            if (recentsGrid.count > 0) {
+                                recentsGrid.forceActiveFocus();
+                                recentsGrid.currentIndex = 0;
+                            }
+                        });
+                    }
 
                     onKeyNavRight: {
                         console.log("[AllApps.onKeyNavRight] Navigating to sidebar");
@@ -816,6 +833,10 @@ Item {
 
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                 console.log("[SidebarItem] Activating item");
+                event.accepted = true;
+                sidebarItem.clicked();
+            } else if (event.key === Qt.Key_Right && sidebarItem.hasDropdown) {
+                console.log("[SidebarItem] Right arrow - opening dropdown");
                 event.accepted = true;
                 sidebarItem.clicked();
             } else if (event.key === Qt.Key_Left) {
