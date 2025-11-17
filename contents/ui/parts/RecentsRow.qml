@@ -201,7 +201,7 @@ FavoritesGridView {
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
                 // TEST: Check all UserRoles to find actionList
-                console.log("[TEST.Recents]", item.display, "→ UserRole+5:", frequentAppsModel.data(modelIndex, Qt.UserRole + 5), "+6:", frequentAppsModel.data(modelIndex, Qt.UserRole + 6), "+7:", frequentAppsModel.data(modelIndex, Qt.UserRole + 7), "+8:", frequentAppsModel.data(modelIndex, Qt.UserRole + 8));
+                console.log("[TEST.Recents]", item.display, "→ +5:", frequentAppsModel.data(modelIndex, Qt.UserRole + 5), "+6:", frequentAppsModel.data(modelIndex, Qt.UserRole + 6), "+7:", frequentAppsModel.data(modelIndex, Qt.UserRole + 7), "+8:", frequentAppsModel.data(modelIndex, Qt.UserRole + 8), "+9:", frequentAppsModel.data(modelIndex, Qt.UserRole + 9));
 
                 appsWithRecentFiles.append({
                     "display": item.display,
