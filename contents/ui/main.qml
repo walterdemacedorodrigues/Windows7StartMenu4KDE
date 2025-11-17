@@ -249,26 +249,31 @@ PlasmoidItem {
                     anchors.fill: parent
                     anchors.margins: Kirigami.Units.smallSpacing
 
-                    PlasmaComponents3.Button {
-                        id: allAppsButton
+                    // Wrapper item for button with highlight
+                    Item {
                         Layout.preferredWidth: parent.width * 0.6
                         Layout.fillHeight: true
-                        text: root.showApps === 0 ? i18n("All Applications") : i18n("Favorites")
-                        icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
 
-                        activeFocusOnTab: true
-
-                        // Add highlight background when focused
-                        background: Item {
-                            PlasmaExtras.Highlight {
-                                anchors.fill: parent
-                                visible: allAppsButton.activeFocus
-                                hovered: true
-                                pressed: allAppsButton.pressed
-                            }
+                        // Highlight background - visible when button has keyboard focus
+                        PlasmaExtras.Highlight {
+                            anchors.fill: parent
+                            visible: allAppsButton.activeFocus
+                            hovered: true
+                            pressed: allAppsButton.pressed
                         }
 
-                        Keys.onPressed: (event) => {
+                        PlasmaComponents3.Button {
+                            id: allAppsButton
+                            anchors.fill: parent
+                            text: root.showApps === 0 ? i18n("All Applications") : i18n("Favorites")
+                            icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
+
+                            activeFocusOnTab: true
+
+                            // Make background transparent so highlight shows through
+                            background: Item {}
+
+                            Keys.onPressed: (event) => {
                             console.log("[AllAppsButton] Key pressed:", event.key, "showApps:", root.showApps);
 
                             // UP: go to Search (when in Fav/Rec mode) or last AllApps item (when in AllApps mode)
@@ -393,6 +398,7 @@ PlasmoidItem {
                             }
                         }
                     }
+                    } // End of wrapper Item
 
                     Item {
                         Layout.fillWidth: true
