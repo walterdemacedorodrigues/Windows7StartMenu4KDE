@@ -137,13 +137,6 @@ PlasmoidItem {
 
         clip: false
 
-        // Background with consistent color (opacity inherited from PlasmoidItem)
-        Rectangle {
-            anchors.fill: parent
-            color: Kirigami.Theme.backgroundColor
-            z: -1
-        }
-
         Parts.Avatar {
             id: floatingAvatar
 
