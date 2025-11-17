@@ -249,18 +249,47 @@ FocusScope {
                 property bool hasActionList: ((model.favoriteId !== null) || (("hasActionList" in model) && (model.hasActionList === true)))
                 property bool hasRecentFiles: model.hasRecentFiles !== undefined ? model.hasRecentFiles : false
 
+                Component.onCompleted: {
+                    console.log("[FavGridView.Delegate] Created:", model.display, "hasRecentFiles:", hasRecentFiles, "from model.hasRecentFiles:", model.hasRecentFiles);
+                }
 
                 Accessible.role: Accessible.MenuItem
                 Accessible.name: model.display
 
                 function openActionMenu(x, y) {
                     var actionList = hasActionList ? model.actionList : [];
-                    Tools.fillActionMenu(i18n, actionMenu, actionList, GridView.view.model.favoritesModel, model.favoriteId);
+
+                    // Check if this is a favorite item (has favoritesModel)
+                    var favModel = GridView.view.model.favoritesModel;
+                    var isFavorite = favModel && favoriteId && favModel.isFavorite(favoriteId);
+
+                    Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
+
+                    // Add "Remove from Favorites" option if this is a favorite
+                    if (isFavorite && favModel) {
+                        actionMenu.actionList.push({
+                            "text": i18n("Remove from Favorites"),
+                            "icon": "list-remove",
+                            "actionId": "_kicker_favorite_remove",
+                            "actionArgument": favoriteId
+                        });
+                    }
+
                     actionMenu.visualParent = delegateItem;
                     actionMenu.open(x, y);
                 }
 
                 function actionTriggered(actionId, actionArgument) {
+                    // Handle "Remove from Favorites" action
+                    if (actionId === "_kicker_favorite_remove") {
+                        var favModel = GridView.view.model.favoritesModel;
+                        if (favModel && favoriteId) {
+                            console.log("[FavoritesGridView] Removing from favorites:", favoriteId);
+                            favModel.removeFavorite(favoriteId);
+                            return;
+                        }
+                    }
+
                     var close = (Tools.triggerAction(GridView.view.model, model.index, actionId, actionArgument) === true);
                     if (close) {
                         var rootItem = delegateItem;

@@ -61,31 +61,49 @@ FavoritesGridView {
 
     // Update recent files count for favorites
     function updateRecentFilesCount() {
-        if (!model) return;
+        console.log("[Favorites.updateRecentFilesCount] ===== START =====");
+        if (!model) {
+            console.log("[Favorites.updateRecentFilesCount] No model!");
+            return;
+        }
+
+        console.log("[Favorites.updateRecentFilesCount] Processing", model.count, "favorites");
 
         for (var f = 0; f < model.count; f++) {
             try {
                 var favoriteUrl = getRecentFilesHelper.extractFavoriteLauncherUrl(model, f);
                 var favoriteDisplay = model.data(model.index(f, 0), Qt.DisplayRole) || "";
 
+                console.log("[Favorites.updateRecentFilesCount] [" + f + "]", favoriteDisplay, "URL:", favoriteUrl);
+
                 if (favoriteUrl) {
                     var totalCount = getRecentFilesHelper.getRecentFilesCount(favoriteUrl, favoritesGrid);
                     var hasRecentFiles = totalCount > 0;
 
-                    if (hasRecentFiles) {
-                        console.log("[Favorites] ✓", favoriteDisplay, "has", totalCount, "recent files");
-                    }
+                    console.log("[Favorites.updateRecentFilesCount] [" + f + "]", favoriteDisplay, "→ hasRecentFiles:", hasRecentFiles, "count:", totalCount);
 
                     if (typeof model.setData === "function") {
                         var favIndex = model.index(f, 0);
-                        model.setData(favIndex, hasRecentFiles, Qt.UserRole + 10);
-                        model.setData(favIndex, totalCount, Qt.UserRole + 11);
+                        var setResult1 = model.setData(favIndex, hasRecentFiles, Qt.UserRole + 10);
+                        var setResult2 = model.setData(favIndex, totalCount, Qt.UserRole + 11);
+                        console.log("[Favorites.updateRecentFilesCount] [" + f + "] setData results:", setResult1, setResult2);
+
+                        // Verify it was set
+                        var verifyHasRecent = model.data(favIndex, Qt.UserRole + 10);
+                        console.log("[Favorites.updateRecentFilesCount] [" + f + "] Verify hasRecentFiles after setData:", verifyHasRecent);
+                    } else {
+                        console.log("[Favorites.updateRecentFilesCount] model.setData is NOT a function!");
                     }
+                } else {
+                    console.log("[Favorites.updateRecentFilesCount] [" + f + "] No valid URL found for", favoriteDisplay);
                 }
             } catch (e) {
+                console.log("[Favorites.updateRecentFilesCount] Exception:", e);
                 continue;
             }
         }
+
+        console.log("[Favorites.updateRecentFilesCount] ===== END =====");
     }
 
     // Grid configuration
