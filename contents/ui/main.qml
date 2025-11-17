@@ -323,6 +323,32 @@ PlasmoidItem {
                                         menuContent.allAppsGrid.currentIndex = 0;
                                         menuContent.allAppsGrid.forceActiveFocus();
                                     });
+                                } else {
+                                    console.log("[AllAppsButton] RIGHT - already in AllApps, ignored");
+                                }
+                                return;
+                            }
+
+                            // LEFT: close AllApps when in AllApps mode
+                            if (event.key === Qt.Key_Left) {
+                                event.accepted = true;
+                                if (root.showApps === 1) {
+                                    console.log("[AllAppsButton] LEFT - closing AllApps, going to Favorites");
+                                    root.showApps = 0;
+                                    if (menuContent) {
+                                        menuContent.showApps = 0;
+                                    }
+                                    if (menuContent.favoritesComponent) {
+                                        var favGrid = menuContent.favoritesComponent.children[0].children[0]; // Column > Favorites
+                                        if (favGrid && favGrid.count > 0) {
+                                            favGrid.currentIndex = 0;
+                                            Qt.callLater(function() {
+                                                favGrid.forceActiveFocus();
+                                            });
+                                        }
+                                    }
+                                } else {
+                                    console.log("[AllAppsButton] LEFT - already in Fav/Rec, ignored");
                                 }
                                 return;
                             }
