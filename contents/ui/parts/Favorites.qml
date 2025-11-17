@@ -63,6 +63,16 @@ FavoritesGridView {
                 if (currentMenu) {
                     currentMenu.visualParent = visualParent;
                     currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
+
+                    // Handle menu close to restore focus
+                    currentMenu.closed.connect(function() {
+                        favoritesGrid.forceActiveFocus();
+                        if (currentMenu) {
+                            currentMenu.destroy();
+                            currentMenu = null;
+                        }
+                    });
+
                     currentMenu.openRelative();
                 }
             }

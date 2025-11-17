@@ -429,6 +429,14 @@ Item {
                         recentsGrid.currentIndex = 0;
                     }
 
+                    onKeyNavUp: {
+                        // Go to All Apps if available
+                        if (allAppsGrid.visible) {
+                            allAppsGrid.forceActiveFocus();
+                            allAppsGrid.currentIndex = 0;
+                        }
+                    }
+
                     onKeyNavRight: {
                         // Navigate to sidebar
                         sidebar.forceActiveFocus();
@@ -466,8 +474,20 @@ Item {
                     onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
                     onKeyNavUp: {
-                        favoritesGrid.forceActiveFocus();
-                        favoritesGrid.currentIndex = favoritesGrid.count - 1;
+                        // If at top of Recents, check if we should go to Favorites or All Apps
+                        if (currentIndex < Math.floor(width / cellWidth)) {
+                            // At top row of Recents
+                            if (favoritesGrid.count > 0) {
+                                favoritesGrid.forceActiveFocus();
+                                favoritesGrid.currentIndex = favoritesGrid.count - 1;
+                            } else if (allAppsGrid.visible) {
+                                allAppsGrid.forceActiveFocus();
+                                allAppsGrid.currentIndex = 0;
+                            }
+                        } else {
+                            favoritesGrid.forceActiveFocus();
+                            favoritesGrid.currentIndex = favoritesGrid.count - 1;
+                        }
                     }
 
                     onKeyNavRight: {
@@ -571,6 +591,20 @@ Item {
                     } else if (mainGrids.visible && allAppsGrid.visible) {
                         allAppsGrid.forceActiveFocus();
                         allAppsGrid.currentIndex = 0;
+                    }
+                }
+            }
+
+            // When sidebar receives focus, focus first child
+            onActiveFocusChanged: {
+                if (activeFocus && sidebarColumn.children.length > 0) {
+                    // Find first SidebarItem in children
+                    for (var i = 0; i < sidebarColumn.children.length; i++) {
+                        var child = sidebarColumn.children[i];
+                        if (child && child.activeFocusOnTab) {
+                            child.forceActiveFocus();
+                            break;
+                        }
                     }
                 }
             }
@@ -755,13 +789,35 @@ Item {
         width: parent.width
         height: 36
         radius: 4
-        color: mouseArea.containsMouse ? (Kirigami.Theme.hoverColor || "#93cee9") : "transparent"
+        color: (activeFocus || mouseArea.containsMouse) ? (Kirigami.Theme.hoverColor || "#93cee9") : "transparent"
 
         property string text: ""
         property string icon: ""
         property bool hasDropdown: false
 
         signal clicked()
+
+        // Make focusable
+        focus: true
+        activeFocusOnTab: true
+
+        // Keyboard navigation
+        Keys.onPressed: (event) => {
+            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                event.accepted = true;
+                sidebarItem.clicked();
+            } else if (event.key === Qt.Key_Left) {
+                event.accepted = true;
+                // Navigate back to left column
+                if (favoritesContainer.visible && recentsGrid.visible) {
+                    recentsGrid.forceActiveFocus();
+                    recentsGrid.currentIndex = 0;
+                } else if (mainGrids.visible && allAppsGrid.visible) {
+                    allAppsGrid.forceActiveFocus();
+                    allAppsGrid.currentIndex = 0;
+                }
+            }
+        }
 
         Row {
             anchors.fill: parent
