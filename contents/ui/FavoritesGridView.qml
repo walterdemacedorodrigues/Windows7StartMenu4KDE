@@ -249,6 +249,10 @@ FocusScope {
                 property bool hasActionList: ((model.favoriteId !== null) || (("hasActionList" in model) && (model.hasActionList === true)))
                 property bool hasRecentFiles: model.hasRecentFiles !== undefined ? model.hasRecentFiles : false
 
+                Component.onCompleted: {
+                    console.log("[FavGridView.Delegate] Item created - display:", model.display, "hasRecentFiles:", hasRecentFiles, "from model:", model.hasRecentFiles);
+                }
+
                 Accessible.role: Accessible.MenuItem
                 Accessible.name: model.display
 
@@ -330,6 +334,13 @@ FocusScope {
                         height: parent.height
                         visible: delegateItem.hasRecentFiles
 
+                        Component.onCompleted: {
+                            console.log("[FavGridView.SubmenuButton] Created for:", model.display, "hasRecentFiles:", delegateItem.hasRecentFiles, "width:", width, "visible:", visible);
+                        }
+                        onVisibleChanged: {
+                            console.log("[FavGridView.SubmenuButton] Visibility changed for:", model.display, "visible:", visible, "hasRecentFiles:", delegateItem.hasRecentFiles);
+                        }
+
                         Kirigami.Icon {
                             id: arrowIcon
                             anchors.centerIn: parent
@@ -345,6 +356,7 @@ FocusScope {
                             anchors.fill: parent
                             hoverEnabled: true
                             onClicked: {
+                                console.log("[FavGridView.SubmenuButton.MouseArea] Clicked! Item:", model.display, "index:", delegateItem.itemIndex);
                                 // Passar a referência do próprio delegateItem
                                 itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
                             }

@@ -142,12 +142,21 @@ FavoritesGridView {
 
     // Update recent files count for favorites
     function updateRecentFilesCount() {
-        if (!model) return;
+        console.log("[Favorites.updateRecentFilesCount] ===== STARTING =====");
+        if (!model) {
+            console.log("[Favorites.updateRecentFilesCount] No model, returning");
+            return;
+        }
+
+        console.log("[Favorites.updateRecentFilesCount] Processing", model.count, "favorites");
 
         for (var f = 0; f < model.count; f++) {
             try {
                 var favIndex = model.index(f, 0);
                 var favoriteUrl = model.data(favIndex, Qt.UserRole + 1) || "";
+                var favoriteDisplay = model.data(favIndex, Qt.DisplayRole) || "";
+
+                console.log("[Favorites.updateRecentFilesCount] Item:", favoriteDisplay, "URL:", favoriteUrl);
 
                 if (favoriteUrl) {
                     var recentActions = taskManagerBackend.recentDocumentActions(favoriteUrl, favoritesGrid);
@@ -159,15 +168,23 @@ FavoritesGridView {
 
                     var hasRecentFiles = totalCount > 0;
 
+                    console.log("[Favorites.updateRecentFilesCount] Item:", favoriteDisplay, "hasRecentFiles:", hasRecentFiles, "count:", totalCount);
+
                     if (typeof model.setData === "function") {
                         model.setData(favIndex, hasRecentFiles, Qt.UserRole + 10);
                         model.setData(favIndex, totalCount, Qt.UserRole + 11);
+                        console.log("[Favorites.updateRecentFilesCount] setData succeeded for:", favoriteDisplay);
+                    } else {
+                        console.log("[Favorites.updateRecentFilesCount] model.setData is NOT a function!");
                     }
                 }
             } catch (e) {
+                console.log("[Favorites.updateRecentFilesCount] Exception:", e);
                 continue;
             }
         }
+
+        console.log("[Favorites.updateRecentFilesCount] ===== FINISHED =====");
     }
 
     // Grid configuration
