@@ -429,6 +429,11 @@ Item {
                         recentsGrid.currentIndex = 0;
                     }
 
+                    onKeyNavRight: {
+                        // Navigate to sidebar
+                        sidebar.forceActiveFocus();
+                    }
+
                     onMenuClosed: {
                         if (typeof root !== "undefined" && root.toggle) {
                             root.toggle();
@@ -463,6 +468,11 @@ Item {
                     onKeyNavUp: {
                         favoritesGrid.forceActiveFocus();
                         favoritesGrid.currentIndex = favoritesGrid.count - 1;
+                    }
+
+                    onKeyNavRight: {
+                        // Navigate to sidebar
+                        sidebar.forceActiveFocus();
                     }
 
                     onMenuClosed: {
@@ -501,6 +511,11 @@ Item {
                     iconSize: contentRoot.iconSize
                     enabled: parent.visible
                     z: enabled ? 5 : -1
+
+                    onKeyNavRight: {
+                        // Navigate to sidebar
+                        sidebar.forceActiveFocus();
+                    }
                 }
             }
         }
@@ -529,12 +544,10 @@ Item {
         }
 
         // Sidebar com navegação - USANDO DADOS REAIS
-        Rectangle {
+        FocusScope {
             id: sidebar
             width: parent.width * 0.35
-            color: "transparent"
-            border.width: 0
-            radius: 8
+            focus: false
 
             anchors {
                 top: parent.top
@@ -546,6 +559,28 @@ Item {
 
             // Dropdown menu properties
             property QtObject currentDropdown: null
+
+            // Keyboard navigation
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Left) {
+                    event.accepted = true;
+                    // Navigate back to left column
+                    if (favoritesContainer.visible && recentsGrid.visible) {
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = 0;
+                    } else if (mainGrids.visible && allAppsGrid.visible) {
+                        allAppsGrid.forceActiveFocus();
+                        allAppsGrid.currentIndex = 0;
+                    }
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.width: 0
+                radius: 8
+            }
 
             function showDropdown(menuType, visualParentItem) {
                 // Fechar dropdown anterior se existir

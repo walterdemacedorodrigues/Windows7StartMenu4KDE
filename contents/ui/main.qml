@@ -306,6 +306,34 @@ PlasmoidItem {
                 return;
             }
 
+            // Navigate Up to All Applications
+            if (event.key === Qt.Key_Up) {
+                if (menuContent && menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
+                    event.accepted = true;
+                    menuContent.allAppsGrid.forceActiveFocus();
+                    menuContent.allAppsGrid.currentIndex = 0;
+                    return;
+                }
+            }
+
+            // Navigate Down to Recents
+            if (event.key === Qt.Key_Down) {
+                if (menuContent && menuContent.favoritesComponent) {
+                    var recentsGrid = menuContent.favoritesComponent.children[0].children[2]; // Column > Recents
+                    if (recentsGrid && recentsGrid.visible) {
+                        event.accepted = true;
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = 0;
+                        return;
+                    }
+                }
+            }
+
+            // Navigate Left/Right between columns
+            if (event.key === Qt.Key_Left || event.key === Qt.Key_Right) {
+                // This will be handled by individual grids via keyNavLeft/keyNavRight signals
+            }
+
             if (event.key === Qt.Key_Backspace) {
                 event.accepted = true;
                 searchBar.backspace();
