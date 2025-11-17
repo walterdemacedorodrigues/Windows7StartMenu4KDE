@@ -104,18 +104,29 @@ FavoritesGridView {
 
     // Get recent files count for app
     function getRecentFilesForApp(launcherUrl) {
-        if (!launcherUrl || !taskManagerBackend) return 0;
+        console.log("[Recents.getRecentFilesForApp] Called with launcherUrl:", launcherUrl);
+        console.log("[Recents.getRecentFilesForApp] taskManagerBackend exists:", !!taskManagerBackend);
+
+        if (!launcherUrl || !taskManagerBackend) {
+            console.log("[Recents.getRecentFilesForApp] Returning 0 - missing launcherUrl or backend");
+            return 0;
+        }
 
         try {
             var recentActions = taskManagerBackend.recentDocumentActions(launcherUrl, recentsGrid);
             var placesActions = taskManagerBackend.placesActions(launcherUrl, false, recentsGrid);
 
+            console.log("[Recents.getRecentFilesForApp] recentActions count:", recentActions ? recentActions.length : 0);
+            console.log("[Recents.getRecentFilesForApp] placesActions count:", placesActions ? placesActions.length : 0);
+
             var totalCount = 0;
             if (recentActions && recentActions.length > 0) totalCount += recentActions.length;
             if (placesActions && placesActions.length > 0) totalCount += placesActions.length;
 
+            console.log("[Recents.getRecentFilesForApp] Total count:", totalCount);
             return totalCount;
         } catch (e) {
+            console.log("[Recents.getRecentFilesForApp] Exception:", e);
             return 0;
         }
     }
@@ -141,6 +152,7 @@ FavoritesGridView {
 
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
+        console.log("[Recents.buildSegregatedModel] ===== STARTING =====");
         appsWithRecentFiles.clear();
         lastFavoritesSnapshot = getFavoritesSnapshot();
 
@@ -213,6 +225,8 @@ FavoritesGridView {
                 var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
+                console.log("[Recents.buildSegregatedModel] Adding app:", item.display, "hasRecentFiles:", hasRecentFiles, "count:", recentFilesCount);
+
                 appsWithRecentFiles.append({
                     "display": item.display,
                     "decoration": iconValue,
@@ -240,10 +254,12 @@ FavoritesGridView {
 
                 addedAppsCount++;
             } catch (e) {
+                console.log("[Recents.buildSegregatedModel] Exception processing item:", e);
                 continue;
             }
         }
 
+        console.log("[Recents.buildSegregatedModel] ===== FINISHED ===== Total apps added:", addedAppsCount);
         modelsProcessed = true;
     }
 
@@ -322,10 +338,17 @@ FavoritesGridView {
 
     // Show recent files menu
     function showRecentFilesMenu(index, visualParent) {
+        console.log("[Recents.showRecentFilesMenu] Called for index:", index);
         var item = appsWithRecentFiles.get(index);
-        if (!item || !item.launcherUrl) return;
+        console.log("[Recents.showRecentFilesMenu] Item:", item ? item.display : "null", "launcherUrl:", item ? item.launcherUrl : "N/A");
+
+        if (!item || !item.launcherUrl) {
+            console.log("[Recents.showRecentFilesMenu] Returning - no item or launcherUrl");
+            return;
+        }
 
         if (currentMenu) {
+            console.log("[Recents.showRecentFilesMenu] Destroying previous menu");
             currentMenu.destroy();
             currentMenu = null;
         }
@@ -333,6 +356,9 @@ FavoritesGridView {
         try {
             var recentActions = taskManagerBackend.recentDocumentActions(item.launcherUrl, recentsGrid);
             var placesActions = taskManagerBackend.placesActions(item.launcherUrl, false, recentsGrid);
+
+            console.log("[Recents.showRecentFilesMenu] recentActions count:", recentActions ? recentActions.length : 0);
+            console.log("[Recents.showRecentFilesMenu] placesActions count:", placesActions ? placesActions.length : 0);
 
             var allActions = [];
             var menuTitle = "";
@@ -345,8 +371,11 @@ FavoritesGridView {
                 menuTitle = i18n("Recent Files");
             }
 
+            console.log("[Recents.showRecentFilesMenu] Total actions:", allActions.length, "menuTitle:", menuTitle);
+
             currentMenu = createMenuFromActions(allActions, visualParent, menuTitle);
             if (currentMenu) {
+                console.log("[Recents.showRecentFilesMenu] Menu created successfully, opening...");
                 currentMenu.visualParent = visualParent;
                 currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
 
@@ -360,9 +389,11 @@ FavoritesGridView {
                 });
 
                 currentMenu.openRelative();
+            } else {
+                console.log("[Recents.showRecentFilesMenu] Failed to create menu");
             }
         } catch (e) {
-            // Handle errors silently
+            console.log("[Recents.showRecentFilesMenu] Exception:", e);
         }
     }
 
@@ -394,7 +425,10 @@ FavoritesGridView {
     }
 
     onSubmenuRequested: function (index, x, y) {
+        console.log("[Recents.onSubmenuRequested] Triggered for index:", index);
         var item = appsWithRecentFiles.get(index);
+        console.log("[Recents.onSubmenuRequested] Item:", item ? item.display : "null", "hasRecentFiles:", item ? item.hasRecentFiles : "N/A");
+
         if (item && item.hasRecentFiles) {
             var visualItem = null;
             for (var i = 0; i < recentsGrid.contentItem.children.length; i++) {
@@ -404,7 +438,10 @@ FavoritesGridView {
                     break;
                 }
             }
+            console.log("[Recents.onSubmenuRequested] Calling showRecentFilesMenu, visualItem found:", !!visualItem);
             showRecentFilesMenu(index, visualItem || recentsGrid);
+        } else {
+            console.log("[Recents.onSubmenuRequested] NOT showing menu - item missing or hasRecentFiles is false");
         }
     }
 
@@ -466,6 +503,9 @@ FavoritesGridView {
     }
 
     Component.onCompleted: {
+        console.log("[Recents.Component.onCompleted] Initializing Recents component");
+        console.log("[Recents.Component.onCompleted] taskManagerBackend exists:", !!taskManagerBackend);
+        console.log("[Recents.Component.onCompleted] favoritesModel exists:", !!favoritesModel);
         buildSegregatedModel();
     }
 
