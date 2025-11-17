@@ -153,22 +153,28 @@ QtObject {
         try {
             var favIndex = favoritesModel.index(index, 0);
 
-            // Try different UserRoles to find the correct URL
-            var url1 = favoritesModel.data(favIndex, Qt.UserRole + 1) || "";
-            var url2 = favoritesModel.data(favIndex, Qt.UserRole + 2) || "";
-            var url3 = favoritesModel.data(favIndex, Qt.UserRole + 3) || "";
+            // Debug: try many UserRoles to find where the URL is
+            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Testing index:", index);
+            console.log("  Qt.UserRole + 0:", favoritesModel.data(favIndex, Qt.UserRole));
+            console.log("  Qt.UserRole + 1:", favoritesModel.data(favIndex, Qt.UserRole + 1));
+            console.log("  Qt.UserRole + 2:", favoritesModel.data(favIndex, Qt.UserRole + 2));
+            console.log("  Qt.UserRole + 3:", favoritesModel.data(favIndex, Qt.UserRole + 3));
+            console.log("  Qt.UserRole + 4:", favoritesModel.data(favIndex, Qt.UserRole + 4));
+            console.log("  Qt.UserRole + 5:", favoritesModel.data(favIndex, Qt.UserRole + 5));
 
-            // Return the one that looks like a valid application URL
-            if (url2 && url2.indexOf("applications:") === 0) {
-                return url2;
-            } else if (url1 && url1.indexOf("applications:") === 0) {
-                return url1;
-            } else if (url3 && url3.indexOf("applications:") === 0) {
-                return url3;
+            // Try different UserRoles to find the correct URL
+            for (var i = 0; i <= 10; i++) {
+                var urlTest = favoritesModel.data(favIndex, Qt.UserRole + i);
+                if (urlTest && typeof urlTest === "string" && urlTest.indexOf("applications:") === 0) {
+                    console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✓ Found URL at UserRole +" + i + ":", urlTest);
+                    return urlTest;
+                }
             }
 
+            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✗ No valid URL found for index:", index);
             return "";
         } catch (e) {
+            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Exception:", e);
             return "";
         }
     }
