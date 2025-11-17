@@ -470,7 +470,7 @@ Item {
                     cellWidth: width
                     cellHeight: contentRoot.cellHeight
                     iconSize: contentRoot.iconSize
-                    favoritesModel: favoritesGrid.model
+                    favoritesModel: favoritesGrid.externalFavoritesModel
 
                     onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
