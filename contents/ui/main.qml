@@ -250,7 +250,7 @@ PlasmoidItem {
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 2
                 Layout.maximumHeight: Kirigami.Units.gridUnit * 2
-                color: Kirigami.Theme.backgroundColor
+                color: "transparent"
 
                 RowLayout {
                     anchors.fill: parent
