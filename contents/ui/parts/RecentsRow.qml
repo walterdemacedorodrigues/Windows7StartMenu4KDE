@@ -200,8 +200,8 @@ FavoritesGridView {
                 var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
-                // TEST: Check all UserRoles to find actionList
-                console.log("[TEST.Recents]", item.display, "→ +5:", frequentAppsModel.data(modelIndex, Qt.UserRole + 5), "+6:", frequentAppsModel.data(modelIndex, Qt.UserRole + 6), "+7:", frequentAppsModel.data(modelIndex, Qt.UserRole + 7), "+8:", frequentAppsModel.data(modelIndex, Qt.UserRole + 8), "+9:", frequentAppsModel.data(modelIndex, Qt.UserRole + 9));
+                // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
+                var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
 
                 appsWithRecentFiles.append({
                     "display": item.display,
@@ -211,17 +211,7 @@ FavoritesGridView {
                     "url": item.url,
                     "favoriteId": item.favoriteId,
                     "launcherUrl": launcherUrl,
-                    "actionList": [
-                        {
-                            "text": i18n("Add to Favorites"),
-                            "icon": "bookmark-new",
-                            "actionId": "_kicker_favorite_add",
-                            "actionArgument": {
-                                "favoriteModel": favoritesModel,
-                                "favoriteId": launcherUrl
-                            }
-                        }
-                    ],
+                    "actionList": desktopActions,
                     "originalIndex": item.originalIndex,
                     "hasActionList": true,
                     "hasRecentFiles": hasRecentFiles,
