@@ -306,12 +306,28 @@ PlasmoidItem {
                 return;
             }
 
-            // Navigate Up to All Applications
+            // Navigate Up to All Applications (go to LAST item for wrap around behavior)
             if (event.key === Qt.Key_Up) {
+                console.log("[Main] Up key pressed, showApps:", root.showApps);
+                // If already in AllApps view, go to last item
                 if (menuContent && menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
                     event.accepted = true;
                     menuContent.allAppsGrid.forceActiveFocus();
-                    menuContent.allAppsGrid.currentIndex = 0;
+                    menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
+                    console.log("[Main] Focused AllApps, set to last item:", menuContent.allAppsGrid.count - 1);
+                    return;
+                }
+                // If in Favorites/Recents view, switch to AllApps and go to last item
+                if (menuContent && !root.searching && root.showApps === 0) {
+                    event.accepted = true;
+                    root.showApps = 1;
+                    Qt.callLater(function() {
+                        if (menuContent.allAppsGrid) {
+                            menuContent.allAppsGrid.forceActiveFocus();
+                            menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
+                            console.log("[Main] Switched to AllApps, set to last item:", menuContent.allAppsGrid.count - 1);
+                        }
+                    });
                     return;
                 }
             }
