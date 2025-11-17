@@ -550,6 +550,10 @@ Item {
                         console.log("[AllApps.onKeyNavLeft] Going back to Favorites/Recents");
                         // Switch back to Favorites/Recents view
                         contentRoot.showApps = 0;
+                        // Also update root.showApps to sync button text/icon
+                        if (typeof root !== "undefined") {
+                            root.showApps = 0;
+                        }
                         if (favoritesGrid.count > 0) {
                             favoritesGrid.currentIndex = 0;
                             Qt.callLater(function() {
