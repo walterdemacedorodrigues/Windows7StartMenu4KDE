@@ -200,6 +200,10 @@ FavoritesGridView {
                 var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
+                // TEST: Check if model already provides actionList
+                var testActionList = frequentAppsModel.data(modelIndex, Qt.UserRole + 6);
+                console.log("[TEST.Recents]", item.display, "→ UserRole+6 type:", typeof testActionList, "value:", testActionList);
+
                 appsWithRecentFiles.append({
                     "display": item.display,
                     "decoration": iconValue,

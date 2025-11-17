@@ -83,6 +83,10 @@ FavoritesGridView {
 
                 var iconValue = (typeof decoration === "object" && decoration !== null) ? "" : decoration || "";
 
+                // TEST: Check if model already provides actionList
+                var testActionList = externalFavoritesModel.data(favIndex, Qt.UserRole + 6);
+                console.log("[TEST.Favorites]", display, "→ UserRole+6 type:", typeof testActionList, "value:", testActionList);
+
                 // Append to local model
                 favoritesWithRecentFiles.append({
                     "display": display,
