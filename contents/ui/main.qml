@@ -257,7 +257,16 @@ PlasmoidItem {
                         icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
 
                         activeFocusOnTab: true
-                        highlighted: activeFocus
+
+                        // Add highlight background when focused
+                        background: Item {
+                            PlasmaExtras.Highlight {
+                                anchors.fill: parent
+                                visible: allAppsButton.activeFocus
+                                hovered: true
+                                pressed: allAppsButton.pressed
+                            }
+                        }
 
                         Keys.onPressed: (event) => {
                             console.log("[AllAppsButton] Key pressed:", event.key, "showApps:", root.showApps);
