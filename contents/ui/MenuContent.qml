@@ -403,7 +403,7 @@ Item {
                 spacing: 0
 
                 // Favorites Grid
-                Parts.Favorites {
+                Parts.FavoritesRow {
                     id: favoritesGrid
                     width: parent.width
                     height: calculateFavoritesHeight()
@@ -463,7 +463,7 @@ Item {
                 }
 
                 // Recents Grid
-                Parts.Recents {
+                Parts.RecentsRow {
                     id: recentsGrid
                     width: parent.width
                     height: parent.height - favoritesGrid.height - 2

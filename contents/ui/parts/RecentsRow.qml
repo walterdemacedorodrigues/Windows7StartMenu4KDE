@@ -34,9 +34,9 @@ FavoritesGridView {
         id: appsWithRecentFiles
     }
 
-    // Recent Files Helper
-    Functions.RecentFiles {
-        id: recentFilesHelper
+    // Get Recent Files Helper
+    Functions.GetRecentFiles {
+        id: getRecentFilesHelper
     }
 
     // State
@@ -104,7 +104,7 @@ FavoritesGridView {
 
     // Get recent files count for app
     function getRecentFilesForApp(launcherUrl) {
-        return recentFilesHelper.getRecentFilesCount(launcherUrl, recentsGrid);
+        return getRecentFilesHelper.getRecentFilesCount(launcherUrl, recentsGrid);
     }
 
     // Validate application item
@@ -262,10 +262,10 @@ FavoritesGridView {
         }
 
         try {
-            var result = recentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
+            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
 
             if (result.count > 0) {
-                currentMenu = recentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
+                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
                 if (currentMenu) {
                     currentMenu.visualParent = visualParent;
                     currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;

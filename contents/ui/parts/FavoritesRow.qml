@@ -27,9 +27,9 @@ FavoritesGridView {
     // Current menu reference
     property QtObject currentMenu: null
 
-    // Recent Files Helper
-    Functions.RecentFiles {
-        id: recentFilesHelper
+    // Get Recent Files Helper
+    Functions.GetRecentFiles {
+        id: getRecentFilesHelper
     }
 
     // Show recent files menu for a favorite item
@@ -43,10 +43,10 @@ FavoritesGridView {
         }
 
         try {
-            var result = recentFilesHelper.getRecentFilesActions(favoriteUrl, favoritesGrid);
+            var result = getRecentFilesHelper.getRecentFilesActions(favoriteUrl, favoritesGrid);
 
             if (result.count > 0) {
-                currentMenu = recentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
+                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
                 if (currentMenu) {
                     currentMenu.visualParent = visualParent;
                     currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
@@ -65,11 +65,11 @@ FavoritesGridView {
 
         for (var f = 0; f < model.count; f++) {
             try {
-                var favoriteUrl = recentFilesHelper.extractFavoriteLauncherUrl(model, f);
+                var favoriteUrl = getRecentFilesHelper.extractFavoriteLauncherUrl(model, f);
                 var favoriteDisplay = model.data(model.index(f, 0), Qt.DisplayRole) || "";
 
                 if (favoriteUrl) {
-                    var totalCount = recentFilesHelper.getRecentFilesCount(favoriteUrl, favoritesGrid);
+                    var totalCount = getRecentFilesHelper.getRecentFilesCount(favoriteUrl, favoritesGrid);
                     var hasRecentFiles = totalCount > 0;
 
                     if (hasRecentFiles) {
@@ -103,8 +103,7 @@ FavoritesGridView {
 
         function onSubmenuRequested(index, x, y) {
             if (model) {
-                var favIndex = model.index(index, 0);
-                var favoriteUrl = model.data(favIndex, Qt.UserRole + 1) || "";
+                var favoriteUrl = getRecentFilesHelper.extractFavoriteLauncherUrl(model, index);
 
                 if (favoriteUrl) {
                     var visualItem = null;
@@ -116,6 +115,7 @@ FavoritesGridView {
                         }
                     }
 
+                    console.log("[Favorites] ✓ Opening submenu for index:", index);
                     showRecentFilesMenu(favoriteUrl, visualItem || favoritesGrid);
                 }
             }
