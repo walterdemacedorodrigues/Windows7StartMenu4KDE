@@ -550,15 +550,17 @@ Item {
                         console.log("[AllApps.onKeyNavLeft] Going back to Favorites/Recents");
                         // Switch back to Favorites/Recents view
                         contentRoot.showApps = 0;
-                        Qt.callLater(function() {
-                            if (favoritesGrid.count > 0) {
+                        if (favoritesGrid.count > 0) {
+                            favoritesGrid.currentIndex = 0;
+                            Qt.callLater(function() {
                                 favoritesGrid.forceActiveFocus();
-                                favoritesGrid.currentIndex = 0;
-                            } else if (recentsGrid.count > 0) {
+                            });
+                        } else if (recentsGrid.count > 0) {
+                            recentsGrid.currentIndex = 0;
+                            Qt.callLater(function() {
                                 recentsGrid.forceActiveFocus();
-                                recentsGrid.currentIndex = 0;
-                            }
-                        });
+                            });
+                        }
                     }
 
                     onKeyNavRight: {

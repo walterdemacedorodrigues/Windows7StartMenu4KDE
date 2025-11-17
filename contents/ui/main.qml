@@ -257,6 +257,7 @@ PlasmoidItem {
                         icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
 
                         activeFocusOnTab: true
+                        highlighted: activeFocus
 
                         Keys.onPressed: (event) => {
                             console.log("[AllAppsButton] Key pressed:", event.key, "showApps:", root.showApps);
@@ -272,8 +273,8 @@ PlasmoidItem {
                                     // Go to last AllApps item
                                     console.log("[AllAppsButton] UP - going to last AllApps item");
                                     if (menuContent.allAppsGrid) {
-                                        menuContent.allAppsGrid.forceActiveFocus();
                                         menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
+                                        menuContent.allAppsGrid.forceActiveFocus();
                                     }
                                 }
                                 return;
@@ -288,16 +289,16 @@ PlasmoidItem {
                                     if (menuContent.favoritesComponent) {
                                         var favGrid = menuContent.favoritesComponent.children[0].children[0]; // Column > Favorites
                                         if (favGrid) {
-                                            favGrid.forceActiveFocus();
                                             favGrid.currentIndex = 0;
+                                            favGrid.forceActiveFocus();
                                         }
                                     }
                                 } else {
                                     // Go to first AllApps item
                                     console.log("[AllAppsButton] DOWN - going to first AllApps item");
                                     if (menuContent.allAppsGrid) {
-                                        menuContent.allAppsGrid.forceActiveFocus();
                                         menuContent.allAppsGrid.currentIndex = 0;
+                                        menuContent.allAppsGrid.forceActiveFocus();
                                     }
                                 }
                                 return;
@@ -319,8 +320,8 @@ PlasmoidItem {
                                         }
                                     }
                                     Qt.callLater(function() {
-                                        menuContent.allAppsGrid.forceActiveFocus();
                                         menuContent.allAppsGrid.currentIndex = 0;
+                                        menuContent.allAppsGrid.forceActiveFocus();
                                     });
                                 }
                                 return;
