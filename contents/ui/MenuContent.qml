@@ -532,7 +532,7 @@ Item {
         Rectangle {
             id: sidebar
             width: parent.width * 0.35
-            color: Kirigami.Theme.backgroundColor
+            color: "transparent"
             border.width: 0
             radius: 8
 
