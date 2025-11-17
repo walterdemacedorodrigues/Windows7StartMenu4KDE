@@ -430,14 +430,17 @@ Item {
                     }
 
                     onKeyNavUp: {
+                        console.log("[Favorites.onKeyNavUp] Trying to go to All Apps, visible:", allAppsGrid.visible);
                         // Go to All Apps if available
                         if (allAppsGrid.visible) {
+                            console.log("[Favorites.onKeyNavUp] Focusing All Apps");
                             allAppsGrid.forceActiveFocus();
                             allAppsGrid.currentIndex = 0;
                         }
                     }
 
                     onKeyNavRight: {
+                        console.log("[Favorites.onKeyNavRight] Navigating to sidebar");
                         // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
@@ -474,23 +477,28 @@ Item {
                     onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
                     onKeyNavUp: {
+                        console.log("[Recents.onKeyNavUp] currentIndex:", currentIndex, "favCount:", favoritesGrid.count, "allAppsVisible:", allAppsGrid.visible);
                         // If at top of Recents, check if we should go to Favorites or All Apps
                         if (currentIndex < Math.floor(width / cellWidth)) {
                             // At top row of Recents
                             if (favoritesGrid.count > 0) {
+                                console.log("[Recents.onKeyNavUp] Going to Favorites");
                                 favoritesGrid.forceActiveFocus();
                                 favoritesGrid.currentIndex = favoritesGrid.count - 1;
                             } else if (allAppsGrid.visible) {
+                                console.log("[Recents.onKeyNavUp] Going to All Apps (no favorites)");
                                 allAppsGrid.forceActiveFocus();
                                 allAppsGrid.currentIndex = 0;
                             }
                         } else {
+                            console.log("[Recents.onKeyNavUp] Going to Favorites (not at top)");
                             favoritesGrid.forceActiveFocus();
                             favoritesGrid.currentIndex = favoritesGrid.count - 1;
                         }
                     }
 
                     onKeyNavRight: {
+                        console.log("[Recents.onKeyNavRight] Navigating to sidebar");
                         // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
@@ -533,6 +541,7 @@ Item {
                     z: enabled ? 5 : -1
 
                     onKeyNavRight: {
+                        console.log("[AllApps.onKeyNavRight] Navigating to sidebar");
                         // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
@@ -803,10 +812,14 @@ Item {
 
         // Keyboard navigation
         Keys.onPressed: (event) => {
+            console.log("[SidebarItem] Key pressed:", event.key, "text:", sidebarItem.text);
+
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                console.log("[SidebarItem] Activating item");
                 event.accepted = true;
                 sidebarItem.clicked();
             } else if (event.key === Qt.Key_Left) {
+                console.log("[SidebarItem] Navigate left to grid");
                 event.accepted = true;
                 // Navigate back to left column
                 if (favoritesContainer.visible && recentsGrid.visible) {
@@ -815,6 +828,48 @@ Item {
                 } else if (mainGrids.visible && allAppsGrid.visible) {
                     allAppsGrid.forceActiveFocus();
                     allAppsGrid.currentIndex = 0;
+                }
+            } else if (event.key === Qt.Key_Down) {
+                console.log("[SidebarItem] Navigate down - trying to find next");
+                event.accepted = true;
+                // Find next focusable sibling
+                var myIndex = -1;
+                for (var i = 0; i < parent.children.length; i++) {
+                    if (parent.children[i] === sidebarItem) {
+                        myIndex = i;
+                        break;
+                    }
+                }
+                if (myIndex >= 0 && myIndex < parent.children.length - 1) {
+                    for (var j = myIndex + 1; j < parent.children.length; j++) {
+                        var nextChild = parent.children[j];
+                        if (nextChild && nextChild.activeFocusOnTab) {
+                            nextChild.forceActiveFocus();
+                            console.log("[SidebarItem] Focused next item");
+                            break;
+                        }
+                    }
+                }
+            } else if (event.key === Qt.Key_Up) {
+                console.log("[SidebarItem] Navigate up - trying to find previous");
+                event.accepted = true;
+                // Find previous focusable sibling
+                var myIndex = -1;
+                for (var i = 0; i < parent.children.length; i++) {
+                    if (parent.children[i] === sidebarItem) {
+                        myIndex = i;
+                        break;
+                    }
+                }
+                if (myIndex > 0) {
+                    for (var j = myIndex - 1; j >= 0; j--) {
+                        var prevChild = parent.children[j];
+                        if (prevChild && prevChild.activeFocusOnTab) {
+                            prevChild.forceActiveFocus();
+                            console.log("[SidebarItem] Focused previous item");
+                            break;
+                        }
+                    }
                 }
             }
         }
