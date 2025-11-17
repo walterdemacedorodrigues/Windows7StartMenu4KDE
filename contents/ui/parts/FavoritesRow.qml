@@ -83,8 +83,8 @@ FavoritesGridView {
 
                 var iconValue = (typeof decoration === "object" && decoration !== null) ? "" : decoration || "";
 
-                // TEST: Check all UserRoles to find actionList
-                console.log("[TEST.Favorites]", display, "→ +5:", externalFavoritesModel.data(favIndex, Qt.UserRole + 5), "+6:", externalFavoritesModel.data(favIndex, Qt.UserRole + 6), "+7:", externalFavoritesModel.data(favIndex, Qt.UserRole + 7), "+8:", externalFavoritesModel.data(favIndex, Qt.UserRole + 8), "+9:", externalFavoritesModel.data(favIndex, Qt.UserRole + 9));
+                // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
+                var desktopActions = externalFavoritesModel.data(favIndex, Qt.UserRole + 9) || [];
 
                 // Append to local model
                 favoritesWithRecentFiles.append({
@@ -95,19 +95,9 @@ FavoritesGridView {
                     "url": url,
                     "favoriteId": favoriteId,
                     "launcherUrl": launcherUrl,
+                    "actionList": desktopActions,
                     "hasRecentFiles": hasRecentFiles,
                     "recentFilesCount": recentFilesCount,
-                    "actionList": [
-                        {
-                            "text": i18n("Remove from Favorites"),
-                            "icon": "bookmark-remove",
-                            "actionId": "_kicker_favorite_remove",
-                            "actionArgument": {
-                                "favoriteModel": externalFavoritesModel,
-                                "favoriteId": launcherUrl || favoriteId
-                            }
-                        }
-                    ],
                     "hasActionList": true,
                     "originalIndex": i
                 });
