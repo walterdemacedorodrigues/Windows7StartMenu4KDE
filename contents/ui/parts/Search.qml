@@ -108,7 +108,28 @@ Rectangle {
                 } else {
                     searchBar.escapePressed();
                 }
-            } else if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+            } else if (event.key === Qt.Key_Up) {
+                event.accepted = true;
+                console.log("[Search] UP - going to last Recents item");
+                // Go to last Recents item
+                if (searchBar.menuContentRef && searchBar.menuContentRef.favoritesComponent) {
+                    var recentsGrid = searchBar.menuContentRef.favoritesComponent.children[0].children[2]; // Column > Recents
+                    if (recentsGrid && recentsGrid.count > 0) {
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = recentsGrid.count - 1;
+                    }
+                }
+            } else if (event.key === Qt.Key_Down) {
+                event.accepted = true;
+                console.log("[Search] DOWN - going to All Apps button");
+                // Go to All Apps button
+                if (typeof allAppsButton !== "undefined") {
+                    allAppsButton.forceActiveFocus();
+                } else {
+                    // Fallback to navigate to results
+                    searchBar.navigateToResults();
+                }
+            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
                 event.accepted = true;
                 searchBar.navigateToResults();
             }
