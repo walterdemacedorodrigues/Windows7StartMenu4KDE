@@ -5,8 +5,8 @@
 
 import QtQuick 2.4
 import org.kde.plasma.extras 2.0 as PlasmaExtras
-import org.kde.plasma.private.taskmanager as TaskManagerApplet
 import ".."
+import "../functions" as Functions
 
 /**
  * Favorites grid component for the Windows 7 Start Menu
@@ -20,7 +20,6 @@ FavoritesGridView {
     property bool dropEnabled: true
     // cellWidth and cellHeight are aliases in FavoritesGridView - don't override them
     property int iconSize: 32
-    property alias taskManagerBackend: taskManagerBackend
 
     // Signals (keyNavDown already defined in FavoritesGridView)
     signal menuClosed()
@@ -28,9 +27,9 @@ FavoritesGridView {
     // Current menu reference
     property QtObject currentMenu: null
 
-    // TaskManager backend for recent files
-    TaskManagerApplet.Backend {
-        id: taskManagerBackend
+    // Recent Files Helper
+    Functions.RecentFiles {
+        id: recentFilesHelper
     }
 
     // Show recent files menu for a favorite item
@@ -44,35 +43,13 @@ FavoritesGridView {
         }
 
         try {
-            var recentActions = taskManagerBackend.recentDocumentActions(favoriteUrl, favoritesGrid);
-            var placesActions = taskManagerBackend.placesActions(favoriteUrl, false, favoritesGrid);
+            var result = recentFilesHelper.getRecentFilesActions(favoriteUrl, favoritesGrid);
 
-            var allActions = [];
-            var menuTitle = "";
-
-            if (placesActions && placesActions.length > 0) {
-                allActions = placesActions;
-                menuTitle = i18n("Recent Places");
-            } else if (recentActions && recentActions.length > 0) {
-                allActions = recentActions;
-                menuTitle = i18n("Recent Files");
-            }
-
-            if (allActions.length > 0) {
-                currentMenu = createMenuFromActions(allActions, visualParent, menuTitle);
+            if (result.count > 0) {
+                currentMenu = recentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
                 if (currentMenu) {
                     currentMenu.visualParent = visualParent;
                     currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-
-                    // Handle menu close to restore focus
-                    currentMenu.closed.connect(function() {
-                        favoritesGrid.forceActiveFocus();
-                        if (currentMenu) {
-                            currentMenu.destroy();
-                            currentMenu = null;
-                        }
-                    });
-
                     currentMenu.openRelative();
                 }
             }
@@ -81,64 +58,6 @@ FavoritesGridView {
         }
     }
 
-    // Create menu from actions
-    function createMenuFromActions(actions, parent, title) {
-        var menu = Qt.createQmlObject(`
-            import org.kde.plasma.extras 2.0 as PlasmaExtras
-            PlasmaExtras.Menu {
-                placement: PlasmaExtras.Menu.RightPosedTopAlignedPopup
-            }
-        `, parent);
-
-        if (!menu) return null;
-
-        // Add title
-        if (title && title !== "") {
-            var headerItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { enabled: false }
-            `, menu);
-            headerItem.text = title;
-            menu.addMenuItem(headerItem);
-
-            var separatorItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { separator: true }
-            `, menu);
-            menu.addMenuItem(separatorItem);
-        }
-
-        // Add action items
-        if (actions && actions.length > 0) {
-            for (var i = 0; i < actions.length; i++) {
-                var action = actions[i];
-                if (!action || typeof action !== "object") continue;
-
-                var menuItem = Qt.createQmlObject(`
-                    import org.kde.plasma.extras 2.0 as PlasmaExtras
-                    PlasmaExtras.MenuItem {}
-                `, menu);
-
-                menuItem.text = action.text || "";
-                menuItem.icon = action.icon || "";
-
-                if (action.trigger && typeof action.trigger === "function") {
-                    menuItem.clicked.connect(action.trigger);
-                }
-
-                menu.addMenuItem(menuItem);
-            }
-        } else {
-            var noItemsItem = Qt.createQmlObject(`
-                import org.kde.plasma.extras 2.0 as PlasmaExtras
-                PlasmaExtras.MenuItem { enabled: false }
-            `, menu);
-            noItemsItem.text = i18n("No recent items");
-            menu.addMenuItem(noItemsItem);
-        }
-
-        return menu;
-    }
 
     // Update recent files count for favorites
     function updateRecentFilesCount() {
@@ -146,34 +65,11 @@ FavoritesGridView {
 
         for (var f = 0; f < model.count; f++) {
             try {
-                var favIndex = model.index(f, 0);
-                var favoriteDisplay = model.data(favIndex, Qt.DisplayRole) || "";
-
-                // Try different UserRoles to find the correct URL
-                var url1 = model.data(favIndex, Qt.UserRole + 1) || "";
-                var url2 = model.data(favIndex, Qt.UserRole + 2) || "";
-                var url3 = model.data(favIndex, Qt.UserRole + 3) || "";
-
-                console.log("[Favorites] Checking", favoriteDisplay, "- UserRole+1:", url1, "UserRole+2:", url2, "UserRole+3:", url3);
-
-                // Use the one that looks like a valid application URL
-                var favoriteUrl = "";
-                if (url2 && url2.indexOf("applications:") === 0) {
-                    favoriteUrl = url2;
-                } else if (url1 && url1.indexOf("applications:") === 0) {
-                    favoriteUrl = url1;
-                } else if (url3 && url3.indexOf("applications:") === 0) {
-                    favoriteUrl = url3;
-                }
+                var favoriteUrl = recentFilesHelper.extractFavoriteLauncherUrl(model, f);
+                var favoriteDisplay = model.data(model.index(f, 0), Qt.DisplayRole) || "";
 
                 if (favoriteUrl) {
-                    var recentActions = taskManagerBackend.recentDocumentActions(favoriteUrl, favoritesGrid);
-                    var placesActions = taskManagerBackend.placesActions(favoriteUrl, false, favoritesGrid);
-
-                    var totalCount = 0;
-                    if (recentActions) totalCount += recentActions.length;
-                    if (placesActions) totalCount += placesActions.length;
-
+                    var totalCount = recentFilesHelper.getRecentFilesCount(favoriteUrl, favoritesGrid);
                     var hasRecentFiles = totalCount > 0;
 
                     if (hasRecentFiles) {
@@ -181,6 +77,7 @@ FavoritesGridView {
                     }
 
                     if (typeof model.setData === "function") {
+                        var favIndex = model.index(f, 0);
                         model.setData(favIndex, hasRecentFiles, Qt.UserRole + 10);
                         model.setData(favIndex, totalCount, Qt.UserRole + 11);
                     }
