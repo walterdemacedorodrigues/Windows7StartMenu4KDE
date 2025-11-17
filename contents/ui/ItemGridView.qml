@@ -307,9 +307,15 @@ FocusScope {
                                         var columns = Math.floor(itemGrid.width / itemGrid.cellWidth);
                                         console.log("[ItemGridView] Left pressed - columns:", columns, "currentCol:", itemGrid.currentCol(), "itemGrid.width:", itemGrid.width, "itemGrid.cellWidth:", itemGrid.cellWidth);
 
-                                        // Always go back to Favorites/Recents on Left (single column grid)
-                                        console.log("[ItemGridView] Calling keyNavLeft");
-                                        itemGrid.keyNavLeft();
+                                        // Only navigate left if we have multiple columns
+                                        if (columns > 1 && itemGrid.currentCol() !== 0) {
+                                            event.accepted = true;
+                                            moveCurrentIndexLeft();
+                                            console.log("[ItemGridView] Moved left");
+                                        } else {
+                                            console.log("[ItemGridView] Calling keyNavLeft");
+                                            itemGrid.keyNavLeft();
+                                        }
                                     }
 
                 Keys.onRightPressed: event => {
@@ -329,16 +335,14 @@ FocusScope {
 
                 Keys.onUpPressed: event => {
                                       console.log("[ItemGridView] Up pressed - currentRow:", itemGrid.currentRow(), "currentIndex:", currentIndex);
-                                      event.accepted = true;
                                       if (itemGrid.currentRow() !== 0) {
+                                          event.accepted = true;
                                           moveCurrentIndexUp();
                                           positionViewAtIndex(currentIndex, GridView.Contain);
                                           console.log("[ItemGridView] Moved up to index:", currentIndex);
                                       } else {
-                                          // At top (first item), wrap around to last item
-                                          console.log("[ItemGridView] At top, wrapping to last item");
-                                          currentIndex = count - 1;
-                                          positionViewAtIndex(currentIndex, GridView.Contain);
+                                          console.log("[ItemGridView] At top, calling keyNavUp");
+                                          itemGrid.keyNavUp();
                                       }
                                   }
 
@@ -346,19 +350,17 @@ FocusScope {
                                         var columns = Math.floor(itemGrid.width / itemGrid.cellWidth);
                                         console.log("[ItemGridView] Down pressed - currentRow:", itemGrid.currentRow(), "lastRow:", itemGrid.lastRow(), "currentIndex:", currentIndex, "count:", count, "columns:", columns, "itemGrid.cellWidth:", itemGrid.cellWidth, "itemGrid.width:", itemGrid.width, "gridView.width:", width);
 
-                                        event.accepted = true;
                                         if (itemGrid.currentRow() < itemGrid.lastRow()) {
                                             // Fix moveCurrentIndexDown()'s lack of proper spatial nav down
                                             // into partial columns.
+                                            event.accepted = true;
                                             var newIndex = currentIndex + columns;
                                             currentIndex = Math.min(newIndex, count - 1);
                                             console.log("[ItemGridView] Moved down to index:", currentIndex, "newIndex was:", newIndex);
                                             positionViewAtIndex(currentIndex, GridView.Contain);
                                         } else {
-                                            // At bottom (last item), wrap around to first item
-                                            console.log("[ItemGridView] At bottom, wrapping to first item");
-                                            currentIndex = 0;
-                                            positionViewAtIndex(currentIndex, GridView.Contain);
+                                            console.log("[ItemGridView] At bottom, calling keyNavDown");
+                                            itemGrid.keyNavDown();
                                         }
                                     }
 

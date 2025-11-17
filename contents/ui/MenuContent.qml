@@ -425,19 +425,19 @@ Item {
                     onCountChanged: Qt.callLater(function() { height = calculateFavoritesHeight(); })
 
                     onKeyNavDown: {
-                        console.log("[Favorites.onKeyNavDown] Going to All Apps button");
-                        // Go to All Applications button
-                        if (typeof allAppsButton !== "undefined") {
-                            allAppsButton.forceActiveFocus();
-                        }
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = 0;
                     }
 
                     onKeyNavUp: {
-                        console.log("[Favorites.onKeyNavUp] Going to All Apps button");
-                        // Go to All Applications button
-                        if (typeof allAppsButton !== "undefined") {
-                            allAppsButton.forceActiveFocus();
-                        }
+                        console.log("[Favorites.onKeyNavUp] Trying to go to All Apps, showApps:", contentRoot.showApps);
+                        // Switch to All Apps view and go to LAST item (wrap around)
+                        contentRoot.showApps = 1;
+                        Qt.callLater(function() {
+                            console.log("[Favorites.onKeyNavUp] Focusing All Apps after showApps change, going to last item");
+                            allAppsGrid.forceActiveFocus();
+                            allAppsGrid.currentIndex = allAppsGrid.count - 1;
+                        });
                     }
 
                     onKeyNavRight: {
@@ -545,15 +545,12 @@ Item {
                     enabled: parent.visible
                     z: enabled ? 5 : -1
 
-                    onKeyNavLeft: {
-                        console.log("[AllApps.onKeyNavLeft] Going back to Favorites/Recents");
+                    onKeyNavDown: {
+                        console.log("[AllApps.onKeyNavDown] Going back to Favorites/Recents");
                         // Switch back to Favorites/Recents view
                         contentRoot.showApps = 0;
                         Qt.callLater(function() {
-                            if (favoritesGrid.count > 0) {
-                                favoritesGrid.forceActiveFocus();
-                                favoritesGrid.currentIndex = 0;
-                            } else if (recentsGrid.count > 0) {
+                            if (recentsGrid.count > 0) {
                                 recentsGrid.forceActiveFocus();
                                 recentsGrid.currentIndex = 0;
                             }
