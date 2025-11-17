@@ -250,10 +250,60 @@ PlasmoidItem {
                     anchors.margins: Kirigami.Units.smallSpacing
 
                     PlasmaComponents3.Button {
+                        id: allAppsButton
                         Layout.preferredWidth: parent.width * 0.6
                         Layout.fillHeight: true
                         text: root.showApps === 0 ? i18n("All Applications") : i18n("Favorites")
                         icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
+
+                        activeFocusOnTab: true
+
+                        Keys.onPressed: (event) => {
+                            console.log("[AllAppsButton] Key pressed:", event.key);
+
+                            // Right arrow opens AllApps
+                            if (event.key === Qt.Key_Right) {
+                                console.log("[AllAppsButton] Right pressed - opening AllApps");
+                                event.accepted = true;
+                                root.showApps = 1;
+                                if (menuContent) {
+                                    menuContent.showApps = 1;
+                                }
+                                if (menuContent.allAppsGrid && rootModel) {
+                                    var appModel = rootModel.modelForRow(0);
+                                    if (appModel) {
+                                        menuContent.allAppsGrid.model = appModel;
+                                    }
+                                }
+                                Qt.callLater(function() {
+                                    menuContent.allAppsGrid.forceActiveFocus();
+                                    menuContent.allAppsGrid.currentIndex = 0;
+                                });
+                                return;
+                            }
+
+                            // Up arrow goes to power buttons
+                            if (event.key === Qt.Key_Up) {
+                                console.log("[AllAppsButton] Up pressed - going to Favorites");
+                                event.accepted = true;
+                                if (menuContent && menuContent.favoritesComponent) {
+                                    var favGrid = menuContent.favoritesComponent.children[0].children[0]; // Column > Favorites
+                                    if (favGrid) {
+                                        favGrid.forceActiveFocus();
+                                        favGrid.currentIndex = favGrid.count - 1;
+                                    }
+                                }
+                                return;
+                            }
+
+                            // Enter/Return/Space activates button
+                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+                                console.log("[AllAppsButton] Activating button");
+                                event.accepted = true;
+                                allAppsButton.clicked();
+                                return;
+                            }
+                        }
 
                         onClicked: {
                             var newValue = root.showApps === 0 ? 1 : 0;
@@ -306,30 +356,12 @@ PlasmoidItem {
                 return;
             }
 
-            // Navigate Up to All Applications (go to LAST item for wrap around behavior)
+            // Navigate Up to All Applications button
             if (event.key === Qt.Key_Up) {
-                console.log("[Main] Up key pressed, showApps:", root.showApps);
-                // If already in AllApps view, go to last item
-                if (menuContent && menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
-                    event.accepted = true;
-                    menuContent.allAppsGrid.forceActiveFocus();
-                    menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
-                    console.log("[Main] Focused AllApps, set to last item:", menuContent.allAppsGrid.count - 1);
-                    return;
-                }
-                // If in Favorites/Recents view, switch to AllApps and go to last item
-                if (menuContent && !root.searching && root.showApps === 0) {
-                    event.accepted = true;
-                    root.showApps = 1;
-                    Qt.callLater(function() {
-                        if (menuContent.allAppsGrid) {
-                            menuContent.allAppsGrid.forceActiveFocus();
-                            menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
-                            console.log("[Main] Switched to AllApps, set to last item:", menuContent.allAppsGrid.count - 1);
-                        }
-                    });
-                    return;
-                }
+                console.log("[Main] Up key pressed - going to All Apps button");
+                event.accepted = true;
+                allAppsButton.forceActiveFocus();
+                return;
             }
 
             // Navigate Down to Recents
