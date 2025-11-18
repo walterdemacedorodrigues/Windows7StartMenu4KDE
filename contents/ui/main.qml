@@ -138,40 +138,61 @@ PlasmoidItem {
 
         clip: false
 
-        Parts.PersonalPortrait {
-            id: floatingAvatar
+        // Wrapper item for ProfilePic with highlight
+        Item {
+            id: profilePicWrapper
+            width: Kirigami.Units.gridUnit * 3.5
+            height: Kirigami.Units.gridUnit * 3.5
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Kirigami.Units.smallSpacing
+            z: 99999
+            visible: kicker.expanded
 
-            userFaceIconUrl: kuser.faceIconUrl
-            isExpanded: kicker.expanded
-            executable: kicker.executable
-
-            onClicked: {
-                root.toggle();
+            // Highlight background - visible when ProfilePic has keyboard focus
+            PlasmaExtras.Highlight {
+                anchors.fill: parent
+                visible: floatingAvatar.activeFocus
+                hovered: true
+                pressed: false
             }
 
-            onKeyNavDown: {
-                if (menuContent && menuContent.sidebar) {
-                    menuContent.sidebar.forceActiveFocus();
+            Parts.PersonalPortrait {
+                id: floatingAvatar
+                anchors.centerIn: parent
+
+                userFaceIconUrl: kuser.faceIconUrl
+                isExpanded: kicker.expanded
+                executable: kicker.executable
+
+                onClicked: {
+                    root.toggle();
                 }
-            }
 
-            onKeyNavUp: {
-                if (powerButtons) {
-                    powerButtons.forceActiveFocus();
+                onKeyNavDown: {
+                    if (menuContent && menuContent.sidebar) {
+                        menuContent.sidebar.forceActiveFocus();
+                    }
                 }
-            }
 
-            onKeyNavLeft: {
-                if (menuContent) {
-                    if (menuContent.favoritesComponent && menuContent.favoritesComponent.visible) {
-                        var recentsGrid = menuContent.favoritesComponent.children[0].children[2];
-                        if (recentsGrid && recentsGrid.visible) {
-                            recentsGrid.forceActiveFocus();
-                            recentsGrid.currentIndex = 0;
+                onKeyNavUp: {
+                    if (powerButtons) {
+                        powerButtons.forceActiveFocus();
+                    }
+                }
+
+                onKeyNavLeft: {
+                    if (menuContent) {
+                        if (menuContent.favoritesComponent && menuContent.favoritesComponent.visible) {
+                            var recentsGrid = menuContent.favoritesComponent.children[0].children[2];
+                            if (recentsGrid && recentsGrid.visible) {
+                                recentsGrid.forceActiveFocus();
+                                recentsGrid.currentIndex = 0;
+                            }
+                        } else if (menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
+                            menuContent.allAppsGrid.forceActiveFocus();
+                            menuContent.allAppsGrid.currentIndex = 0;
                         }
-                    } else if (menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
-                        menuContent.allAppsGrid.forceActiveFocus();
-                        menuContent.allAppsGrid.currentIndex = 0;
                     }
                 }
             }
@@ -447,30 +468,45 @@ PlasmoidItem {
                         Layout.fillWidth: true
                     }
 
-                    Parts.PowerButtons {
-                        id: powerButtons
+                    // Wrapper item for PowerButtons with highlight
+                    Item {
+                        Layout.preferredWidth: parent.width * 0.3
+                        Layout.fillHeight: true
 
-                        actionInProgress: root.systemActionInProgress
-
-                        onExecuteAction: (command, actionType) => {
-                            root.executeSystemAction(command, actionType);
+                        // Highlight background - visible when PowerButtons has keyboard focus
+                        PlasmaExtras.Highlight {
+                            anchors.fill: parent
+                            visible: powerButtons.activeFocus
+                            hovered: true
+                            pressed: false
                         }
 
-                        onKeyNavUp: {
-                            console.log("[Main] PowerButtons.onKeyNavUp - going to Sidebar");
-                            if (menuContent && menuContent.sidebar) {
-                                menuContent.sidebar.forceActiveFocus();
+                        Parts.PowerButtons {
+                            id: powerButtons
+                            anchors.fill: parent
+
+                            actionInProgress: root.systemActionInProgress
+
+                            onExecuteAction: (command, actionType) => {
+                                root.executeSystemAction(command, actionType);
                             }
-                        }
 
-                        onKeyNavDown: {
-                            console.log("[Main] PowerButtons.onKeyNavDown - going to ProfilePic");
-                            floatingAvatar.forceActiveFocus();
-                        }
+                            onKeyNavUp: {
+                                console.log("[Main] PowerButtons.onKeyNavUp - going to Sidebar");
+                                if (menuContent && menuContent.sidebar) {
+                                    menuContent.sidebar.forceActiveFocus();
+                                }
+                            }
 
-                        onKeyNavLeft: {
-                            console.log("[Main] PowerButtons.onKeyNavLeft - going to AllAppsButton");
-                            allAppsButton.forceActiveFocus();
+                            onKeyNavDown: {
+                                console.log("[Main] PowerButtons.onKeyNavDown - going to ProfilePic");
+                                floatingAvatar.forceActiveFocus();
+                            }
+
+                            onKeyNavLeft: {
+                                console.log("[Main] PowerButtons.onKeyNavLeft - going to AllAppsButton");
+                                allAppsButton.forceActiveFocus();
+                            }
                         }
                     }
                 }

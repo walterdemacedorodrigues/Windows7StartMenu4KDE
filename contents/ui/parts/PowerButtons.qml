@@ -15,10 +15,6 @@ import org.kde.kirigami as Kirigami
 Item {
     id: powerButtons
 
-    // Layout properties
-    Layout.preferredWidth: parent.width * 0.3
-    Layout.fillHeight: true
-
     // Properties
     property bool actionInProgress: false
 

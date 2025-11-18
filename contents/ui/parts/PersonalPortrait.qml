@@ -31,16 +31,9 @@ Rectangle {
     height: Kirigami.Units.gridUnit * 3
     radius: width / 2
 
-    anchors.right: parent.right
-    anchors.top: parent.top
-    anchors.margins: Kirigami.Units.smallSpacing
-
     color: "transparent"
     border.width: 2
     border.color: Kirigami.Theme.highlightColor || "#3daee9"
-
-    z: 99999
-    visible: isExpanded
 
     // Keyboard navigation
     focus: true
