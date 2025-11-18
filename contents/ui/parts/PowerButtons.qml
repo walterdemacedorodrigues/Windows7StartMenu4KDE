@@ -67,7 +67,8 @@ Item {
         background: Item {}
 
         onClicked: {
-            powerButtons.executeAction("systemctl poweroff", "shutdown");
+            // Try Plasma 6 first, fallback to systemctl
+            powerButtons.executeAction("qdbus6 org.kde.Shutdown /Shutdown logoutAndShutdown || systemctl poweroff", "shutdown");
         }
     }
 
@@ -141,7 +142,8 @@ Item {
                 enabled: !powerButtons.actionInProgress
 
                 onClicked: {
-                    powerButtons.executeAction("systemctl reboot", "restart");
+                    // Try Plasma 6 first, fallback to systemctl
+                    powerButtons.executeAction("qdbus6 org.kde.Shutdown /Shutdown logoutAndReboot || systemctl reboot", "restart");
                 }
             }
 
@@ -213,7 +215,7 @@ Item {
 
                 onClicked: {
                     // Try Plasma 6 first, fallback to Plasma 5
-                    var logoutCmd = "qdbus-qt6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout || qdbus org.kde.ksmserver /KSMServer logout 1 0 0";
+                    var logoutCmd = "qdbus6 org.kde.Shutdown /Shutdown logout || qdbus org.kde.ksmserver /KSMServer logout 1 0 0";
                     powerButtons.executeAction(logoutCmd, "logout");
                 }
             }
