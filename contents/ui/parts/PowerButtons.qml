@@ -169,7 +169,8 @@ Item {
                 enabled: !powerButtons.actionInProgress
 
                 onClicked: {
-                    powerButtons.executeAction("qdbus org.kde.kscreenlocker /ScreenSaver Lock", "lock");
+                    // Try Plasma 6 first, fallback to Plasma 5
+                    powerButtons.executeAction("loginctl lock-session || qdbus org.kde.kscreenlocker /ScreenSaver Lock", "lock");
                 }
             }
 
@@ -211,12 +212,8 @@ Item {
                 enabled: !powerButtons.actionInProgress
 
                 onClicked: {
-                    var logoutCmd = "loginctl terminate-session";
-                    if (typeof process !== "undefined" && process.env && process.env.XDG_SESSION_ID) {
-                        logoutCmd += " " + process.env.XDG_SESSION_ID;
-                    } else {
-                        logoutCmd = "qdbus org.kde.ksmserver /KSMServer logout 1 0 0";
-                    }
+                    // Try Plasma 6 first, fallback to Plasma 5
+                    var logoutCmd = "qdbus-qt6 org.kde.Shutdown /Shutdown org.kde.Shutdown.logout || qdbus org.kde.ksmserver /KSMServer logout 1 0 0";
                     powerButtons.executeAction(logoutCmd, "logout");
                 }
             }
