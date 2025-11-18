@@ -29,6 +29,7 @@ Item {
     property alias allAppsGrid: allAppsGrid
     property alias runnerGrid: runnerGrid
     property alias mainColumn: mainColumn
+    property alias sidebar: sidebar
     property var executable
 
     // Signal sent when search text changes
@@ -602,6 +603,7 @@ Item {
         // Sidebar com navegação - USANDO DADOS REAIS
         FocusScope {
             id: sidebar
+            objectName: "sidebar"
             width: parent.width * 0.35
             focus: false
 
@@ -616,18 +618,27 @@ Item {
             // Dropdown menu properties
             property QtObject currentDropdown: null
 
+            // Navigation signals
+            signal keyNavUp()
+            signal keyNavDown()
+            signal keyNavLeft()
+
             // Keyboard navigation
             Keys.onPressed: (event) => {
                 if (event.key === Qt.Key_Left) {
                     event.accepted = true;
-                    // Navigate back to left column
-                    if (favoritesContainer.visible && recentsGrid.visible) {
-                        recentsGrid.forceActiveFocus();
-                        recentsGrid.currentIndex = 0;
-                    } else if (mainGrids.visible && allAppsGrid.visible) {
-                        allAppsGrid.forceActiveFocus();
-                        allAppsGrid.currentIndex = 0;
-                    }
+                    keyNavLeft();
+                }
+            }
+
+            onKeyNavLeft: {
+                // Navigate back to left column
+                if (favoritesContainer.visible && recentsGrid.visible) {
+                    recentsGrid.forceActiveFocus();
+                    recentsGrid.currentIndex = 0;
+                } else if (mainGrids.visible && allAppsGrid.visible) {
+                    allAppsGrid.forceActiveFocus();
+                    allAppsGrid.currentIndex = 0;
                 }
             }
 
@@ -852,14 +863,7 @@ Item {
             } else if (event.key === Qt.Key_Left) {
                 console.log("[SidebarItem] Navigate left to grid");
                 event.accepted = true;
-                // Navigate back to left column
-                if (favoritesContainer.visible && recentsGrid.visible) {
-                    recentsGrid.forceActiveFocus();
-                    recentsGrid.currentIndex = 0;
-                } else if (mainGrids.visible && allAppsGrid.visible) {
-                    allAppsGrid.forceActiveFocus();
-                    allAppsGrid.currentIndex = 0;
-                }
+                sidebar.keyNavLeft();
             } else if (event.key === Qt.Key_Down) {
                 console.log("[SidebarItem] Navigate down - trying to find next");
                 event.accepted = true;
@@ -871,7 +875,18 @@ Item {
                         break;
                     }
                 }
-                if (myIndex >= 0 && myIndex < parent.children.length - 1) {
+                // Check if this is the last focusable item
+                var isLastFocusable = true;
+                for (var k = myIndex + 1; k < parent.children.length; k++) {
+                    if (parent.children[k] && parent.children[k].activeFocusOnTab) {
+                        isLastFocusable = false;
+                        break;
+                    }
+                }
+                if (isLastFocusable) {
+                    console.log("[SidebarItem] At last item - emitting keyNavDown");
+                    sidebar.keyNavDown();
+                } else if (myIndex >= 0 && myIndex < parent.children.length - 1) {
                     for (var j = myIndex + 1; j < parent.children.length; j++) {
                         var nextChild = parent.children[j];
                         if (nextChild && nextChild.activeFocusOnTab) {
@@ -892,7 +907,18 @@ Item {
                         break;
                     }
                 }
-                if (myIndex > 0) {
+                // Check if this is the first focusable item
+                var isFirstFocusable = true;
+                for (var k = 0; k < myIndex; k++) {
+                    if (parent.children[k] && parent.children[k].activeFocusOnTab) {
+                        isFirstFocusable = false;
+                        break;
+                    }
+                }
+                if (isFirstFocusable) {
+                    console.log("[SidebarItem] At first item - emitting keyNavUp");
+                    sidebar.keyNavUp();
+                } else if (myIndex > 0) {
                     for (var j = myIndex - 1; j >= 0; j--) {
                         var prevChild = parent.children[j];
                         if (prevChild && prevChild.activeFocusOnTab) {

@@ -148,6 +148,33 @@ PlasmoidItem {
             onClicked: {
                 root.toggle();
             }
+
+            onKeyNavDown: {
+                if (menuContent && menuContent.sidebar) {
+                    menuContent.sidebar.forceActiveFocus();
+                }
+            }
+
+            onKeyNavUp: {
+                if (powerButtons) {
+                    powerButtons.forceActiveFocus();
+                }
+            }
+
+            onKeyNavLeft: {
+                if (menuContent) {
+                    if (menuContent.favoritesComponent && menuContent.favoritesComponent.visible) {
+                        var recentsGrid = menuContent.favoritesComponent.children[0].children[2];
+                        if (recentsGrid && recentsGrid.visible) {
+                            recentsGrid.forceActiveFocus();
+                            recentsGrid.currentIndex = 0;
+                        }
+                    } else if (menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
+                        menuContent.allAppsGrid.forceActiveFocus();
+                        menuContent.allAppsGrid.currentIndex = 0;
+                    }
+                }
+            }
         }
 
         ColumnLayout {
@@ -202,6 +229,21 @@ PlasmoidItem {
                         if (typeof menuContent !== "undefined" && menuContent && menuContent.searchTextChanged) {
                             menuContent.searchTextChanged.connect(menuContent.onSearchTextChanged);
                         }
+                    }
+                }
+
+                // Sidebar navigation connections
+                Connections {
+                    target: menuContent.sidebar
+
+                    function onKeyNavUp() {
+                        console.log("[Main] Sidebar.onKeyNavUp - going to ProfilePic");
+                        floatingAvatar.forceActiveFocus();
+                    }
+
+                    function onKeyNavDown() {
+                        console.log("[Main] Sidebar.onKeyNavDown - going to PowerButtons");
+                        powerButtons.forceActiveFocus();
                     }
                 }
             }
@@ -412,6 +454,23 @@ PlasmoidItem {
 
                         onExecuteAction: (command, actionType) => {
                             root.executeSystemAction(command, actionType);
+                        }
+
+                        onKeyNavUp: {
+                            console.log("[Main] PowerButtons.onKeyNavUp - going to Sidebar");
+                            if (menuContent && menuContent.sidebar) {
+                                menuContent.sidebar.forceActiveFocus();
+                            }
+                        }
+
+                        onKeyNavDown: {
+                            console.log("[Main] PowerButtons.onKeyNavDown - going to ProfilePic");
+                            floatingAvatar.forceActiveFocus();
+                        }
+
+                        onKeyNavLeft: {
+                            console.log("[Main] PowerButtons.onKeyNavLeft - going to AllAppsButton");
+                            allAppsButton.forceActiveFocus();
                         }
                     }
                 }
