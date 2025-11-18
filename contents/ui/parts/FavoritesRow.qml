@@ -86,14 +86,8 @@ FavoritesGridView {
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = externalFavoritesModel.data(favIndex, Qt.UserRole + 9) || [];
 
-                // Merge desktop actions with Remove from Favorites
+                // Merge: Remove from Favorites first, then desktop actions
                 var mergedActions = [];
-                for (var j = 0; j < desktopActions.length; j++) {
-                    mergedActions.push(desktopActions[j]);
-                }
-                if (desktopActions.length > 0) {
-                    mergedActions.push({"type": "separator"});
-                }
                 mergedActions.push({
                     "text": i18n("Remove from Favorites"),
                     "icon": "bookmark-remove",
@@ -103,6 +97,12 @@ FavoritesGridView {
                         "favoriteId": launcherUrl || favoriteId
                     }
                 });
+                if (desktopActions.length > 0) {
+                    mergedActions.push({"type": "separator"});
+                    for (var j = 0; j < desktopActions.length; j++) {
+                        mergedActions.push(desktopActions[j]);
+                    }
+                }
 
                 console.log("[Favorites.Merge]", display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
 
