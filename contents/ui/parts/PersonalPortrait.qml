@@ -56,7 +56,8 @@ Rectangle {
             console.log("[ProfilePic] ENTER - activating");
             event.accepted = true;
             if (avatar.executable) {
-                avatar.executable.exec("systemsettings5 kcm_users");
+                // Try Plasma 6 first, fallback to Plasma 5
+                avatar.executable.exec("systemsettings kcm_users || systemsettings5 kcm_users");
             }
             avatar.clicked();
         }
@@ -152,7 +153,8 @@ Rectangle {
 
         onClicked: {
             if (avatar.executable) {
-                avatar.executable.exec("systemsettings5 kcm_users");
+                // Try Plasma 6 first, fallback to Plasma 5
+                avatar.executable.exec("systemsettings kcm_users || systemsettings5 kcm_users");
             }
             avatar.clicked();
         }
