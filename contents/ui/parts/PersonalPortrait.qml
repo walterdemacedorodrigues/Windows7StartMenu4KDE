@@ -41,22 +41,17 @@ Rectangle {
 
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Down) {
-            console.log("[ProfilePic] DOWN - going to Sidebar");
             event.accepted = true;
             keyNavDown();
         } else if (event.key === Qt.Key_Up) {
-            console.log("[ProfilePic] UP - going to PowerButtons");
             event.accepted = true;
             keyNavUp();
         } else if (event.key === Qt.Key_Left) {
-            console.log("[ProfilePic] LEFT - going to left side");
             event.accepted = true;
             keyNavLeft();
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-            console.log("[ProfilePic] ENTER - activating");
             event.accepted = true;
             if (avatar.executable) {
-                // Try Plasma 6 first, fallback to Plasma 5
                 avatar.executable.exec("systemsettings kcm_users || systemsettings5 kcm_users");
             }
             avatar.clicked();

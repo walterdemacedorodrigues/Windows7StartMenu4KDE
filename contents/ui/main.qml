@@ -258,12 +258,10 @@ PlasmoidItem {
                     target: menuContent.sidebar
 
                     function onKeyNavUp() {
-                        console.log("[Main] Sidebar.onKeyNavUp - going to ProfilePic");
                         floatingAvatar.forceActiveFocus();
                     }
 
                     function onKeyNavDown() {
-                        console.log("[Main] Sidebar.onKeyNavDown - going to PowerButtons");
                         powerButtons.forceActiveFocus();
                     }
                 }
@@ -338,18 +336,11 @@ PlasmoidItem {
                             background: Item {}
 
                             Keys.onPressed: (event) => {
-                            console.log("[AllAppsButton] Key pressed:", event.key, "showApps:", root.showApps);
-
-                            // UP: go to Search (when in Fav/Rec mode) or last AllApps item (when in AllApps mode)
                             if (event.key === Qt.Key_Up) {
                                 event.accepted = true;
                                 if (root.showApps === 0) {
-                                    // Go to Search
-                                    console.log("[AllAppsButton] UP - going to Search");
                                     searchBar.focusSearchField();
                                 } else {
-                                    // Go to last AllApps item
-                                    console.log("[AllAppsButton] UP - going to last AllApps item");
                                     if (menuContent.allAppsGrid) {
                                         menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
                                         menuContent.allAppsGrid.forceActiveFocus();
@@ -358,22 +349,17 @@ PlasmoidItem {
                                 return;
                             }
 
-                            // DOWN: go to first Favorites item (when in Fav/Rec mode) or first AllApps item (when in AllApps mode)
                             if (event.key === Qt.Key_Down) {
                                 event.accepted = true;
                                 if (root.showApps === 0) {
-                                    // Go to first Favorites item
-                                    console.log("[AllAppsButton] DOWN - going to first Favorites item");
                                     if (menuContent.favoritesComponent) {
-                                        var favGrid = menuContent.favoritesComponent.children[0].children[0]; // Column > Favorites
+                                        var favGrid = menuContent.favoritesComponent.children[0].children[0];
                                         if (favGrid) {
                                             favGrid.currentIndex = 0;
                                             favGrid.forceActiveFocus();
                                         }
                                     }
                                 } else {
-                                    // Go to first AllApps item
-                                    console.log("[AllAppsButton] DOWN - going to first AllApps item");
                                     if (menuContent.allAppsGrid) {
                                         menuContent.allAppsGrid.currentIndex = 0;
                                         menuContent.allAppsGrid.forceActiveFocus();
@@ -382,11 +368,9 @@ PlasmoidItem {
                                 return;
                             }
 
-                            // RIGHT: open AllApps when in Fav/Rec mode
                             if (event.key === Qt.Key_Right) {
                                 event.accepted = true;
                                 if (root.showApps === 0) {
-                                    console.log("[AllAppsButton] RIGHT - opening AllApps");
                                     root.showApps = 1;
                                     if (menuContent) {
                                         menuContent.showApps = 1;
@@ -401,23 +385,19 @@ PlasmoidItem {
                                         menuContent.allAppsGrid.currentIndex = 0;
                                         menuContent.allAppsGrid.forceActiveFocus();
                                     });
-                                } else {
-                                    console.log("[AllAppsButton] RIGHT - already in AllApps, ignored");
                                 }
                                 return;
                             }
 
-                            // LEFT: close AllApps when in AllApps mode
                             if (event.key === Qt.Key_Left) {
                                 event.accepted = true;
                                 if (root.showApps === 1) {
-                                    console.log("[AllAppsButton] LEFT - closing AllApps, going to Favorites");
                                     root.showApps = 0;
                                     if (menuContent) {
                                         menuContent.showApps = 0;
                                     }
                                     if (menuContent.favoritesComponent) {
-                                        var favGrid = menuContent.favoritesComponent.children[0].children[0]; // Column > Favorites
+                                        var favGrid = menuContent.favoritesComponent.children[0].children[0];
                                         if (favGrid && favGrid.count > 0) {
                                             favGrid.currentIndex = 0;
                                             Qt.callLater(function() {
@@ -425,16 +405,12 @@ PlasmoidItem {
                                             });
                                         }
                                     }
-                                } else {
-                                    console.log("[AllAppsButton] LEFT - already in Fav/Rec, ignored");
                                 }
                                 return;
                             }
 
-                            // Enter/Return/Space: toggle view
                             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                                 event.accepted = true;
-                                console.log("[AllAppsButton] Activating button");
                                 allAppsButton.clicked();
                                 return;
                             }
@@ -492,19 +468,16 @@ PlasmoidItem {
                             }
 
                             onKeyNavUp: {
-                                console.log("[Main] PowerButtons.onKeyNavUp - going to Sidebar");
                                 if (menuContent && menuContent.sidebar) {
                                     menuContent.sidebar.forceActiveFocus();
                                 }
                             }
 
                             onKeyNavDown: {
-                                console.log("[Main] PowerButtons.onKeyNavDown - going to ProfilePic");
                                 floatingAvatar.forceActiveFocus();
                             }
 
                             onKeyNavLeft: {
-                                console.log("[Main] PowerButtons.onKeyNavLeft - going to AllAppsButton");
                                 allAppsButton.forceActiveFocus();
                             }
                         }
@@ -526,7 +499,6 @@ PlasmoidItem {
 
             // Navigate Up to All Applications button
             if (event.key === Qt.Key_Up) {
-                console.log("[Main] Up key pressed - going to All Apps button");
                 event.accepted = true;
                 allAppsButton.forceActiveFocus();
                 return;

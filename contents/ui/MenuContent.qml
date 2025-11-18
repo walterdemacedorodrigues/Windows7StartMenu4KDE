@@ -426,21 +426,17 @@ Item {
                     onCountChanged: Qt.callLater(function() { height = calculateFavoritesHeight(); })
 
                     onKeyNavDown: {
-                        console.log("[Favorites.onKeyNavDown] Going to first Recents item");
                         recentsGrid.forceActiveFocus();
                         recentsGrid.currentIndex = 0;
                     }
 
                     onKeyNavUp: {
-                        console.log("[Favorites.onKeyNavUp] Going to All Apps button");
                         if (typeof allAppsButton !== "undefined") {
                             allAppsButton.forceActiveFocus();
                         }
                     }
 
                     onKeyNavRight: {
-                        console.log("[Favorites.onKeyNavRight] Navigating to sidebar");
-                        // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
 
@@ -476,7 +472,6 @@ Item {
                     onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
                     onKeyNavUp: {
-                        console.log("[Recents.onKeyNavUp] Going to last Favorites item");
                         if (favoritesGrid.count > 0) {
                             favoritesGrid.forceActiveFocus();
                             favoritesGrid.currentIndex = favoritesGrid.count - 1;
@@ -484,13 +479,10 @@ Item {
                     }
 
                     onKeyNavDown: {
-                        console.log("[Recents.onKeyNavDown] Going to Search");
                         searchBar.focusSearchField();
                     }
 
                     onKeyNavRight: {
-                        console.log("[Recents.onKeyNavRight] Navigating to sidebar");
-                        // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
 
@@ -532,26 +524,19 @@ Item {
                     z: enabled ? 5 : -1
 
                     onKeyNavUp: {
-                        console.log("[AllApps.onKeyNavUp] Going to Favorites button");
-                        // Go to Favorites button (same button, different text)
                         if (typeof allAppsButton !== "undefined") {
                             allAppsButton.forceActiveFocus();
                         }
                     }
 
                     onKeyNavDown: {
-                        console.log("[AllApps.onKeyNavDown] Going to Favorites button");
-                        // Go to Favorites button (same button, different text)
                         if (typeof allAppsButton !== "undefined") {
                             allAppsButton.forceActiveFocus();
                         }
                     }
 
                     onKeyNavLeft: {
-                        console.log("[AllApps.onKeyNavLeft] Going back to Favorites/Recents");
-                        // Switch back to Favorites/Recents view
                         contentRoot.showApps = 0;
-                        // Also update root.showApps to sync button text/icon
                         if (typeof root !== "undefined") {
                             root.showApps = 0;
                         }
@@ -569,8 +554,6 @@ Item {
                     }
 
                     onKeyNavRight: {
-                        console.log("[AllApps.onKeyNavRight] Navigating to sidebar");
-                        // Navigate to sidebar
                         sidebar.forceActiveFocus();
                     }
                 }
@@ -850,24 +833,17 @@ Item {
 
         // Keyboard navigation
         Keys.onPressed: (event) => {
-            console.log("[SidebarItem] Key pressed:", event.key, "text:", sidebarItem.text);
-
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                console.log("[SidebarItem] Activating item");
                 event.accepted = true;
                 sidebarItem.clicked();
             } else if (event.key === Qt.Key_Right && sidebarItem.hasDropdown) {
-                console.log("[SidebarItem] Right arrow - opening dropdown");
                 event.accepted = true;
                 sidebarItem.clicked();
             } else if (event.key === Qt.Key_Left) {
-                console.log("[SidebarItem] Navigate left to grid");
                 event.accepted = true;
                 sidebar.keyNavLeft();
             } else if (event.key === Qt.Key_Down) {
-                console.log("[SidebarItem] Navigate down - trying to find next");
                 event.accepted = true;
-                // Find next focusable sibling
                 var myIndex = -1;
                 for (var i = 0; i < parent.children.length; i++) {
                     if (parent.children[i] === sidebarItem) {
@@ -875,7 +851,6 @@ Item {
                         break;
                     }
                 }
-                // Check if this is the last focusable item
                 var isLastFocusable = true;
                 for (var k = myIndex + 1; k < parent.children.length; k++) {
                     if (parent.children[k] && parent.children[k].activeFocusOnTab) {
@@ -884,22 +859,18 @@ Item {
                     }
                 }
                 if (isLastFocusable) {
-                    console.log("[SidebarItem] At last item - emitting keyNavDown");
                     sidebar.keyNavDown();
                 } else if (myIndex >= 0 && myIndex < parent.children.length - 1) {
                     for (var j = myIndex + 1; j < parent.children.length; j++) {
                         var nextChild = parent.children[j];
                         if (nextChild && nextChild.activeFocusOnTab) {
                             nextChild.forceActiveFocus();
-                            console.log("[SidebarItem] Focused next item");
                             break;
                         }
                     }
                 }
             } else if (event.key === Qt.Key_Up) {
-                console.log("[SidebarItem] Navigate up - trying to find previous");
                 event.accepted = true;
-                // Find previous focusable sibling
                 var myIndex = -1;
                 for (var i = 0; i < parent.children.length; i++) {
                     if (parent.children[i] === sidebarItem) {
@@ -907,7 +878,6 @@ Item {
                         break;
                     }
                 }
-                // Check if this is the first focusable item
                 var isFirstFocusable = true;
                 for (var k = 0; k < myIndex; k++) {
                     if (parent.children[k] && parent.children[k].activeFocusOnTab) {
@@ -916,14 +886,12 @@ Item {
                     }
                 }
                 if (isFirstFocusable) {
-                    console.log("[SidebarItem] At first item - emitting keyNavUp");
                     sidebar.keyNavUp();
                 } else if (myIndex > 0) {
                     for (var j = myIndex - 1; j >= 0; j--) {
                         var prevChild = parent.children[j];
                         if (prevChild && prevChild.activeFocusOnTab) {
                             prevChild.forceActiveFocus();
-                            console.log("[SidebarItem] Focused previous item");
                             break;
                         }
                     }

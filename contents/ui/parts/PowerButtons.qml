@@ -30,23 +30,18 @@ Item {
 
     Keys.onPressed: (event) => {
         if (event.key === Qt.Key_Up) {
-            console.log("[PowerButtons] UP - going to Sidebar");
             event.accepted = true;
             keyNavUp();
         } else if (event.key === Qt.Key_Down) {
-            console.log("[PowerButtons] DOWN - going to ProfilePic");
             event.accepted = true;
             keyNavDown();
         } else if (event.key === Qt.Key_Left) {
-            console.log("[PowerButtons] LEFT - going to left side");
             event.accepted = true;
             keyNavLeft();
         } else if (event.key === Qt.Key_Right) {
-            console.log("[PowerButtons] RIGHT - opening submenu");
             event.accepted = true;
             systemActionsMenu.visible = !systemActionsMenu.visible;
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-            console.log("[PowerButtons] ENTER - activating shutdown");
             event.accepted = true;
             shutdownButton.clicked();
         }
@@ -58,7 +53,7 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: parent.width - dropdownButton.width
+        width: parent.width - dropdownButton.width - 2
         text: i18n("Shutdown")
         icon.name: "system-shutdown"
         enabled: !powerButtons.actionInProgress
@@ -67,7 +62,6 @@ Item {
         background: Item {}
 
         onClicked: {
-            // Try Plasma 6 first, fallback to systemctl
             powerButtons.executeAction("qdbus6 org.kde.Shutdown /Shutdown logoutAndShutdown || systemctl poweroff", "shutdown");
         }
     }
@@ -78,6 +72,7 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        anchors.leftMargin: -2
         width: Kirigami.Units.gridUnit * 1.2
         icon.name: "arrow-down"
 
