@@ -203,6 +203,26 @@ FavoritesGridView {
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
 
+                // Merge desktop actions with Add to Favorites
+                var mergedActions = [];
+                for (var j = 0; j < desktopActions.length; j++) {
+                    mergedActions.push(desktopActions[j]);
+                }
+                if (desktopActions.length > 0) {
+                    mergedActions.push({"type": "separator"});
+                }
+                mergedActions.push({
+                    "text": i18n("Add to Favorites"),
+                    "icon": "bookmark-new",
+                    "actionId": "_kicker_favorite_add",
+                    "actionArgument": {
+                        "favoriteModel": favoritesModel,
+                        "favoriteId": launcherUrl
+                    }
+                });
+
+                console.log("[Recents.Merge]", item.display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
+
                 appsWithRecentFiles.append({
                     "display": item.display,
                     "decoration": iconValue,
@@ -211,7 +231,7 @@ FavoritesGridView {
                     "url": item.url,
                     "favoriteId": item.favoriteId,
                     "launcherUrl": launcherUrl,
-                    "actionList": desktopActions,
+                    "actionList": mergedActions,
                     "originalIndex": item.originalIndex,
                     "hasActionList": true,
                     "hasRecentFiles": hasRecentFiles,
