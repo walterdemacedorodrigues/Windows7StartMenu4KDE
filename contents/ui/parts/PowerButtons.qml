@@ -41,6 +41,10 @@ Item {
             console.log("[PowerButtons] LEFT - going to left side");
             event.accepted = true;
             keyNavLeft();
+        } else if (event.key === Qt.Key_Right) {
+            console.log("[PowerButtons] RIGHT - opening submenu");
+            event.accepted = true;
+            systemActionsMenu.visible = !systemActionsMenu.visible;
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
             console.log("[PowerButtons] ENTER - activating shutdown");
             event.accepted = true;
@@ -59,6 +63,9 @@ Item {
         icon.name: "system-shutdown"
         enabled: !powerButtons.actionInProgress
 
+        // Make background transparent so highlight shows through
+        background: Item {}
+
         onClicked: {
             powerButtons.executeAction("systemctl poweroff", "shutdown");
         }
@@ -72,6 +79,9 @@ Item {
         anchors.bottom: parent.bottom
         width: Kirigami.Units.gridUnit * 1.2
         icon.name: "arrow-down"
+
+        // Make background transparent so highlight shows through
+        background: Item {}
 
         onClicked: {
             systemActionsMenu.visible = !systemActionsMenu.visible;
