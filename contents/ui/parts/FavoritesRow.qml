@@ -40,6 +40,22 @@ FavoritesGridView {
         id: getRecentFilesHelper
     }
 
+    // Execute favorite app
+    function executeItem(index) {
+        try {
+            if (externalFavoritesModel && typeof externalFavoritesModel.trigger === "function") {
+                var item = favoritesWithRecentFiles.get(index);
+                if (item && typeof item.originalIndex !== "undefined") {
+                    externalFavoritesModel.trigger(item.originalIndex, "", null);
+                    return true;
+                }
+            }
+        } catch (e) {
+            return false;
+        }
+        return false;
+    }
+
     // Build local model with recent files data
     function buildFavoritesModel() {
         favoritesWithRecentFiles.clear();
@@ -183,8 +199,10 @@ FavoritesGridView {
                 }
             }
 
-            if (!actionId || actionId === "") {
-                favoritesGrid.menuClosed();
+            if (!actionId || actionId === "" || actionId === undefined) {
+                if (executeItem(index)) {
+                    favoritesGrid.menuClosed();
+                }
             }
         }
 
