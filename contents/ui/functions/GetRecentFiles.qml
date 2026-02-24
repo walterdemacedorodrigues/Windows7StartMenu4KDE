@@ -4,76 +4,169 @@
  */
 
 import QtQuick 2.4
+import QtCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
-import org.kde.plasma.private.taskmanager as TaskManagerApplet
 
 /**
  * Get Recent Files Helper Component
- * Centralizes all logic for managing recent files/places per application
+ * Reads per-application recent files from ~/.local/share/recently-used.xbel
+ * Replaces the removed org.kde.plasma.private.taskmanager.Backend dependency.
  */
 QtObject {
     id: getRecentFilesHelper
 
-    // Required: TaskManager backend for accessing recent files
-    property var taskManagerBackend: TaskManagerApplet.Backend {}
+    // Emitted once the XBEL file has been parsed and the cache is ready.
+    // FavoritesRow listens to this to rebuild its model.
+    signal cacheLoaded()
 
-    /**
-     * Get the count of recent files/places for an application
-     * @param launcherUrl - Application launcher URL (e.g., "applications:firefox.desktop")
-     * @param parentItem - Parent QML item for context
-     * @return Number of recent files/places available
-     */
-    function getRecentFilesCount(launcherUrl, parentItem) {
-        if (!launcherUrl || !taskManagerBackend) return 0;
+    property var _xbelCache: ({})
+    property bool _cacheReady: false
 
-        try {
-            var recentActions = taskManagerBackend.recentDocumentActions(launcherUrl, parentItem);
-            var placesActions = taskManagerBackend.placesActions(launcherUrl, false, parentItem);
+    Component.onCompleted: {
+        _loadXbel();
+    }
 
-            var totalCount = 0;
-            if (recentActions && recentActions.length > 0) totalCount += recentActions.length;
-            if (placesActions && placesActions.length > 0) totalCount += placesActions.length;
+    // "applications:org.kde.okular.desktop" -> ["org.kde.okular", "okular"]
+    function _getPossibleAppNames(launcherUrl) {
+        if (!launcherUrl) return [];
+        var name = launcherUrl.replace(/^applications:/, "").replace(/\.desktop$/, "").toLowerCase();
+        var names = [name];
+        var parts = name.split(".");
+        if (parts.length > 1) {
+            names.push(parts[parts.length - 1]);
+        }
+        return names;
+    }
 
-            return totalCount;
-        } catch (e) {
-            return 0;
+    function _iconFromHref(href) {
+        var ext = href.toLowerCase().split(".").pop().split("?")[0];
+        if (ext === "pdf") return "application-pdf";
+        if (["jpg","jpeg","png","gif","bmp","svg","webp","tiff"].indexOf(ext) !== -1) return "image-x-generic";
+        if (["mp3","wav","ogg","flac","m4a","opus","aac"].indexOf(ext) !== -1) return "audio-x-generic";
+        if (["mp4","avi","mkv","mov","webm","ogv"].indexOf(ext) !== -1) return "video-x-generic";
+        if (["doc","docx","odt","rtf"].indexOf(ext) !== -1) return "application-msword";
+        if (["xls","xlsx","ods","csv"].indexOf(ext) !== -1) return "application-vnd.ms-excel";
+        if (["ppt","pptx","odp"].indexOf(ext) !== -1) return "application-vnd.ms-powerpoint";
+        if (["zip","tar","gz","bz2","xz","7z","rar"].indexOf(ext) !== -1) return "application-zip";
+        return "text-x-generic";
+    }
+
+    function _loadXbel() {
+        var dataPath = StandardPaths.writableLocation(StandardPaths.GenericDataLocation);
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== XMLHttpRequest.DONE) return;
+            var newCache = {};
+            if (xhr.responseXML) {
+                _parseXbel(xhr.responseXML, newCache);
+            }
+            _xbelCache = newCache;
+            _cacheReady = true;
+            getRecentFilesHelper.cacheLoaded();
+        };
+        xhr.open("GET", "file://" + dataPath + "/recently-used.xbel");
+        xhr.send();
+    }
+
+    function _parseXbel(doc, cache) {
+        var BOOKMARK_NS = "http://www.freedesktop.org/standards/desktop-bookmarks";
+        var bookmarks = doc.getElementsByTagName("bookmark");
+
+        for (var i = 0; i < bookmarks.length; i++) {
+            var bm = bookmarks[i];
+            var href = bm.getAttribute("href") || "";
+            if (!href.startsWith("file://")) continue;
+
+            // Extract title
+            var titleNodes = bm.getElementsByTagName("title");
+            var rawTitle = (titleNodes.length > 0 ? titleNodes[0].textContent : "").trim();
+            if (!rawTitle) {
+                var hrefParts = href.split("/");
+                rawTitle = decodeURIComponent(hrefParts[hrefParts.length - 1]);
+            }
+            // Skip entries without a file extension (likely directories)
+            if (rawTitle.indexOf(".") === -1) continue;
+
+            var visited = bm.getAttribute("visited") || bm.getAttribute("modified") || "";
+
+            // Find which apps opened this file
+            var appNodes = bm.getElementsByTagNameNS(BOOKMARK_NS, "application");
+            for (var j = 0; j < appNodes.length; j++) {
+                var appName = (appNodes[j].getAttribute("name") || "").toLowerCase();
+                if (!appName) continue;
+                if (!cache[appName]) cache[appName] = [];
+
+                // Avoid duplicates
+                var dup = false;
+                for (var k = 0; k < cache[appName].length; k++) {
+                    if (cache[appName][k].href === href) { dup = true; break; }
+                }
+                if (!dup) {
+                    cache[appName].push({
+                        text: rawTitle,
+                        href: href,
+                        icon: _iconFromHref(href),
+                        visited: visited
+                    });
+                }
+            }
+        }
+
+        // Sort each app's list: most recently visited first
+        for (var app in cache) {
+            cache[app].sort(function(a, b) { return (b.visited > a.visited) ? 1 : -1; });
         }
     }
 
+    // Try all possible app names derived from launcherUrl against the cache
+    function _getCachedFiles(launcherUrl) {
+        var names = _getPossibleAppNames(launcherUrl);
+        for (var i = 0; i < names.length; i++) {
+            var files = _xbelCache[names[i]];
+            if (files && files.length > 0) return files;
+        }
+        return [];
+    }
+
     /**
-     * Get recent files/places actions for an application
+     * Get the count of recent files for an application
+     * @param launcherUrl - Application launcher URL (e.g., "applications:firefox.desktop")
+     * @param parentItem - Unused, kept for API compatibility
+     * @return Number of recent files available (max 10)
+     */
+    function getRecentFilesCount(launcherUrl, parentItem) {
+        if (!_cacheReady || !launcherUrl) return 0;
+        return Math.min(_getCachedFiles(launcherUrl).length, 10);
+    }
+
+    /**
+     * Get recent files actions for an application
      * @param launcherUrl - Application launcher URL
-     * @param parentItem - Parent QML item for context
+     * @param parentItem - Unused, kept for API compatibility
      * @return Object with { actions: [], title: "", count: 0 }
      */
     function getRecentFilesActions(launcherUrl, parentItem) {
-        var result = {
-            actions: [],
-            title: "",
-            count: 0
-        };
+        var result = { actions: [], title: "", count: 0 };
+        if (!_cacheReady || !launcherUrl) return result;
 
-        if (!launcherUrl || !taskManagerBackend) return result;
+        var files = _getCachedFiles(launcherUrl);
+        if (files.length === 0) return result;
 
-        try {
-            var recentActions = taskManagerBackend.recentDocumentActions(launcherUrl, parentItem);
-            var placesActions = taskManagerBackend.placesActions(launcherUrl, false, parentItem);
-
-            // Prioritize places for apps like Dolphin, otherwise use recent documents
-            if (placesActions && placesActions.length > 0) {
-                result.actions = placesActions;
-                result.title = i18n("Recent Places");
-                result.count = placesActions.length;
-            } else if (recentActions && recentActions.length > 0) {
-                result.actions = recentActions;
-                result.title = i18n("Recent Files");
-                result.count = recentActions.length;
-            }
-
-            return result;
-        } catch (e) {
-            return result;
+        var actions = [];
+        for (var i = 0; i < Math.min(files.length, 10); i++) {
+            actions.push((function(f) {
+                return {
+                    text: f.text,
+                    icon: f.icon,
+                    trigger: function() { Qt.openUrlExternally(f.href); }
+                };
+            })(files[i]));
         }
+
+        result.actions = actions;
+        result.title = i18n("Recent Files");
+        result.count = actions.length;
+        return result;
     }
 
     /**
@@ -153,7 +246,6 @@ QtObject {
         try {
             var favIndex = favoritesModel.index(index, 0);
 
-            // Debug: try many UserRoles to find where the URL is
             console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Testing index:", index);
             console.log("  Qt.UserRole + 0:", favoritesModel.data(favIndex, Qt.UserRole));
             console.log("  Qt.UserRole + 1:", favoritesModel.data(favIndex, Qt.UserRole + 1));
@@ -162,7 +254,6 @@ QtObject {
             console.log("  Qt.UserRole + 4:", favoritesModel.data(favIndex, Qt.UserRole + 4));
             console.log("  Qt.UserRole + 5:", favoritesModel.data(favIndex, Qt.UserRole + 5));
 
-            // Try different UserRoles to find the correct URL
             for (var i = 0; i <= 10; i++) {
                 var urlTest = favoritesModel.data(favIndex, Qt.UserRole + i);
                 if (urlTest && typeof urlTest === "string" && urlTest.indexOf("applications:") === 0) {

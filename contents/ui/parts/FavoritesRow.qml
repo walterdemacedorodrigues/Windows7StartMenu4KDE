@@ -272,6 +272,14 @@ FavoritesGridView {
         }
     }
 
+    // Rebuild model once the XBEL cache is ready so hasRecentFiles flags are correct
+    Connections {
+        target: getRecentFilesHelper
+        function onCacheLoaded() {
+            Qt.callLater(buildFavoritesModel);
+        }
+    }
+
     Component.onCompleted: {
         if (externalFavoritesModel) {
             buildFavoritesModel();
