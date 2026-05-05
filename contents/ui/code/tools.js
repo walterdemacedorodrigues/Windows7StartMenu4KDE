@@ -8,23 +8,6 @@
 
 .pragma library
 
-function _toolsSummary(v) {
-    if (v === null) return "null";
-    if (v === undefined) return "undefined";
-    if (typeof v === "string") return "string(\"" + v.substring(0, 40) + "\")";
-    if (typeof v === "number") return "number(" + v + ")";
-    if (typeof v === "boolean") return "bool(" + v + ")";
-    if (Array.isArray(v)) return "array(len=" + v.length + ")";
-    if (typeof v === "object") {
-        var s = "object";
-        if (typeof v.count === "number") s += " .count=" + v.count;
-        if (typeof v.length === "number") s += " .length=" + v.length;
-        if (typeof v.get === "function") s += " (has .get)";
-        return s;
-    }
-    return typeof v;
-}
-
 // Normalize an action list that may be a JS Array, a ListModel proxy (.count + .get),
 // or a generic indexed object (.length) into a plain JS array of action items.
 function actionListToArray(items) {
@@ -43,39 +26,22 @@ function actionListToArray(items) {
 }
 
 function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId) {
-    // Accessing actionList can be a costly operation, so we don't
-    // access it until we need the menu.
-    console.log("[Probe.Tools.fillActionMenu] inputs",
-        "actionList:", _toolsSummary(actionList),
-        "favModel:", (favoriteModel ? "ok(enabled=" + favoriteModel.enabled
-                      + ", count=" + favoriteModel.count + ")" : "null"),
-        "favoriteId:", favoriteId);
-
     var actions = createFavoriteActions(i18n, favoriteModel, favoriteId);
-    console.log("[Probe.Tools.fillActionMenu] createFavoriteActions returned",
-        actions ? ("array(len=" + actions.length + ", first.actionId=" + (actions[0] && actions[0].actionId) + ")") : "null");
 
     if (actions) {
         var existing = actionListToArray(actionList);
-        console.log("[Probe.Tools.fillActionMenu] existing.length after toArray =", existing.length);
         if (existing.length > 0) {
             existing.push({ "type": "separator" });
-            // actionList = actions.concat(actionList); // this crashes Qt O.o
             existing.push.apply(existing, actions);
             actionList = existing;
         } else {
             actionList = actions;
         }
     } else {
-        // No favorite actions, but still normalize so ActionMenu can iterate it
         var normalized = actionListToArray(actionList);
-        console.log("[Probe.Tools.fillActionMenu] no fav actions; normalized.length =", normalized.length);
         if (normalized.length > 0) actionList = normalized;
     }
 
-    var finalLen = (actionList && actionList.length !== undefined) ? actionList.length
-                   : ((actionList && actionList.count !== undefined) ? actionList.count : 0);
-    console.log("[Probe.Tools.fillActionMenu] FINAL actionList length =", finalLen);
     actionMenu.actionList = actionList;
 }
 

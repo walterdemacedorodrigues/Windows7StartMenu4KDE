@@ -34,10 +34,15 @@ FavoritesGridView {
         id: appsWithRecentFiles
     }
 
-    // Get Recent Files Helper
+    // Menu builder helper
     Functions.GetRecentFiles {
         id: getRecentFilesHelper
     }
+
+    // Recent file actions extracted from kicker actionList,
+    // keyed by local model index. Kept outside the ListModel to avoid
+    // VariantMap/List coercion of action.actionArgument.
+    property var _recentFileActionsByIndex: ({})
 
     // State
     property var lastFavoritesSnapshot: []
@@ -101,11 +106,6 @@ FavoritesGridView {
         return "";
     }
 
-    // Get recent files count for app
-    function getRecentFilesForApp(launcherUrl) {
-        return getRecentFilesHelper.getRecentFilesCount(launcherUrl, recentsGrid);
-    }
-
     // Validate application item
     function isValidApplication(modelItem) {
         if (!modelItem) return false;
@@ -125,11 +125,10 @@ FavoritesGridView {
         return true;
     }
 
-    // ==== DIAGNOSTIC HELPERS (one-shot probe of the upstream model) ====
-
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
         appsWithRecentFiles.clear();
+        _recentFileActionsByIndex = {};
         lastFavoritesSnapshot = getFavoritesSnapshot();
 
         // Collect favorite IDs to avoid duplicates
@@ -197,14 +196,23 @@ FavoritesGridView {
 
                 if (isDuplicate) continue;
 
-                var recentFilesCount = getRecentFilesForApp(launcherUrl);
-                var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
 
-                // Merge: Add to Favorites first, then desktop actions
+                // Classify actions: forget→drop, _kicker_recentDocument→flyout, rest→right-click
+                var filteredActions = [];
+                var recentFileActions = [];
+                for (var k = 0; k < desktopActions.length; k++) {
+                    var act = desktopActions[k];
+                    var aid = (act && act.actionId) ? String(act.actionId) : "";
+                    if (aid === "forget" || aid === "forgetAll" || aid === "_kicker_forgetRecentDocuments") continue;
+                    filteredActions.push(act);
+                    if (aid === "_kicker_recentDocument") recentFileActions.push(act);
+                }
+
+                // Build right-click action list: Add to Favorites + separator + filtered actions
                 var mergedActions = [];
                 mergedActions.push({
                     "text": i18n("Add to Favorites"),
@@ -215,15 +223,6 @@ FavoritesGridView {
                         "favoriteId": launcherUrl
                     }
                 });
-                // Keep only real .desktop file actions; drop forget-related kicker actions
-                var filteredActions = [];
-                for (var k = 0; k < desktopActions.length; k++) {
-                    var act = desktopActions[k];
-                    var aid = (act && act.actionId) ? String(act.actionId) : "";
-                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
-                        filteredActions.push(act);
-                    }
-                }
                 if (filteredActions.length > 0) {
                     mergedActions.push({"type": "separator"});
                     for (var j = 0; j < filteredActions.length; j++) {
@@ -231,7 +230,8 @@ FavoritesGridView {
                     }
                 }
 
-                console.log("[Recents.Merge]", item.display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
+                var localIndex = appsWithRecentFiles.count;
+                _recentFileActionsByIndex[localIndex] = recentFileActions;
 
                 appsWithRecentFiles.append({
                     "display": item.display,
@@ -244,8 +244,8 @@ FavoritesGridView {
                     "actionList": mergedActions,
                     "originalIndex": item.originalIndex,
                     "hasActionList": true,
-                    "hasRecentFiles": hasRecentFiles,
-                    "recentFilesCount": recentFilesCount
+                    "hasRecentFiles": recentFileActions.length > 0,
+                    "recentFilesCount": recentFileActions.length
                 });
 
                 addedAppsCount++;
@@ -275,7 +275,10 @@ FavoritesGridView {
     // Show recent files menu
     function showRecentFilesMenu(index, visualParent) {
         var item = appsWithRecentFiles.get(index);
-        if (!item || !item.launcherUrl) return;
+        if (!item) return;
+
+        var srcActions = _recentFileActionsByIndex[index] || [];
+        if (srcActions.length === 0) return;
 
         if (currentMenu) {
             currentMenu.destroy();
@@ -283,19 +286,31 @@ FavoritesGridView {
         }
 
         try {
-            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
+            var originalIndex = item.originalIndex;
+            var actions = [];
+            for (var i = 0; i < srcActions.length; i++) {
+                (function(srcAction) {
+                    actions.push({
+                        text: srcAction.text || "",
+                        icon: srcAction.icon || "document-open-recent",
+                        trigger: function() {
+                            if (typeof frequentAppsModel.trigger === "function") {
+                                var closeRequested = frequentAppsModel.trigger(originalIndex, "_kicker_recentDocument", srcAction.actionArgument);
+                                if (closeRequested) recentsGrid.menuClosed();
+                            }
+                        }
+                    });
+                })(srcActions[i]);
+            }
 
-            if (result.count > 0) {
-                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
-                if (currentMenu) {
-                    currentMenu.visualParent = visualParent;
-                    currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                    currentMenu.openRelative();
-                    console.log("[Recents] ✓ Menu opened for", item.display, "with", result.count, "items");
-                }
+            currentMenu = getRecentFilesHelper.createMenuFromActions(actions, visualParent, i18n("Recent Files"));
+            if (currentMenu) {
+                currentMenu.visualParent = visualParent;
+                currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
+                currentMenu.openRelative();
             }
         } catch (e) {
-            console.log("[Recents] ✗ Menu error:", e);
+            console.log("[Recents] Menu error:", e);
         }
     }
 
@@ -342,11 +357,8 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
-        console.log("[Recents] Key pressed:", event.key, "Qt.Key_Right:", Qt.Key_Right, "currentMenu:", currentMenu);
-
         // Close submenu with Left or Escape
         if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
-            console.log("[Recents] Closing submenu");
             event.accepted = true;
             currentMenu.close();
             currentMenu.destroy();
@@ -360,11 +372,7 @@ FavoritesGridView {
             return;
         }
 
-        // DON'T capture Key_Right here - let delegate handle it for submenus
-        // DON'T capture Key_Up here - let FavoritesGridView keyNavUp signal handle it
-
         if (event.key === Qt.Key_Up && currentIndex < Math.floor(width / cellWidth)) {
-            console.log("[Recents] KeyNavUp to Favorites");
             event.accepted = true;
             recentsGrid.keyNavUp();
         }
