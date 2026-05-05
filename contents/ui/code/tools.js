@@ -8,13 +8,35 @@
 
 .pragma library
 
+// Heuristic: does a candidate value look like a list of action items?
+function _looksLikeActionList(value) {
+    if (!value || typeof value === "string" || typeof value === "number"
+            || typeof value === "boolean") {
+        return false;
+    }
+    // Probe the first element via either array indexing or ListModel.get.
+    var first = null;
+    if (Array.isArray(value) && value.length > 0) {
+        first = value[0];
+    } else if (typeof value.count === "number" && typeof value.get === "function" && value.count > 0) {
+        first = value.get(0);
+    } else if (typeof value.length === "number" && value.length > 0) {
+        first = value[0];
+    }
+    if (!first || typeof first !== "object") return false;
+    return (first.text !== undefined) || (first.actionId !== undefined) || (first.type !== undefined);
+}
+
 // Normalize an action list that may be a JS Array, a ListModel proxy
 // (.count + .get), or a generic .length-indexed object into a plain JS array.
+// Strings/numbers/booleans are intentionally rejected so we never mistake a
+// stray string role (e.g. "applications:firefox.desktop") for a char array.
 function actionListToArray(items) {
-    if (!items) return [];
+    if (!items || typeof items === "string" || typeof items === "number"
+            || typeof items === "boolean") {
+        return [];
+    }
     var result = [];
-    // Prefer .count + .get for QML ListModel proxies, where .length is often
-    // undefined or stale.
     if (typeof items.count === "number" && typeof items.get === "function") {
         for (var j = 0; j < items.count; j++) result.push(items.get(j));
         return result;
@@ -27,10 +49,26 @@ function actionListToArray(items) {
     return [];
 }
 
+// Drop kicker-internal noise that we either re-emit ourselves
+// (favorite add/remove) or that doesn't make sense in our menu context
+// (forget application / forget all).
+function _filterKickerNoise(actions) {
+    var out = [];
+    for (var i = 0; i < actions.length; i++) {
+        var a = actions[i];
+        var aid = (a && a.actionId) ? String(a.actionId).toLowerCase() : "";
+        if (aid.indexOf("favorite") !== -1) continue;       // dedupe with createFavoriteActions
+        if (aid.indexOf("forget") !== -1) continue;         // forget app / forget all
+        out.push(a);
+    }
+    return out;
+}
+
 // Fetch the actionList for a given row in any kicker model. Discovers the
 // "actionList" role at runtime via roleNames() (with sensible fallbacks),
 // so it works uniformly against FavoritesModel, RecentUsageModel, and
-// the apps tree under RootModel.
+// the apps tree under RootModel. Each candidate is validated so we don't
+// accept a string role index by mistake.
 function getUpstreamActionList(model, row) {
     if (!model || row === undefined || row === null || row < 0) return [];
     try {
@@ -57,8 +95,9 @@ function getUpstreamActionList(model, row) {
 
         for (var c = 0; c < candidates.length; c++) {
             var raw = model.data(modelIndex, candidates[c]);
+            if (!_looksLikeActionList(raw)) continue;
             var arr = actionListToArray(raw);
-            if (arr.length > 0) return arr;
+            if (arr.length > 0) return _filterKickerNoise(arr);
         }
         return [];
     } catch (e) {
@@ -84,7 +123,15 @@ function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId)
 }
 
 function createFavoriteActions(i18n, favoriteModel, favoriteId) {
-    if (!favoriteModel || !favoriteModel.enabled || !favoriteId) {
+    if (!favoriteModel || !favoriteId) {
+        return null;
+    }
+    // KAStatsFavoritesModel (Plasma 6) doesn't expose .enabled — only treat
+    // explicit false as disabled, undefined means "enabled".
+    if (favoriteModel.enabled === false) {
+        return null;
+    }
+    if (typeof favoriteModel.isFavorite !== "function") {
         return null;
     }
 
@@ -93,17 +140,26 @@ function createFavoriteActions(i18n, favoriteModel, favoriteId) {
         !favoriteModel.activities.runningActivities ||
         favoriteModel.activities.runningActivities.length <= 1) {
         var action = {};
+        var isFav = false;
+        try { isFav = favoriteModel.isFavorite(favoriteId); } catch (e) { isFav = false; }
 
-        if (favoriteModel.isFavorite(favoriteId)) {
+        if (isFav) {
             action.text = i18n("Remove from Favorites");
             action.icon = "bookmark-remove";
             action.actionId = "_kicker_favorite_remove";
-        } else if (favoriteModel.maxFavorites === -1 || favoriteModel.count < favoriteModel.maxFavorites) {
-            action.text = i18n("Add to Favorites");
-            action.icon = "bookmark-new";
-            action.actionId = "_kicker_favorite_add";
         } else {
-            return null;
+            // Permissive cap check: allow if no limit is exposed (undefined),
+            // explicitly unlimited (-1), or under the limit.
+            var max = favoriteModel.maxFavorites;
+            var canAdd = (max === undefined || max === null || max === -1) ||
+                         (typeof max === "number" && typeof favoriteModel.count === "number" && favoriteModel.count < max);
+            if (canAdd) {
+                action.text = i18n("Add to Favorites");
+                action.icon = "bookmark-new";
+                action.actionId = "_kicker_favorite_add";
+            } else {
+                return null;
+            }
         }
 
         action.actionArgument = { favoriteModel: favoriteModel, favoriteId: favoriteId };
