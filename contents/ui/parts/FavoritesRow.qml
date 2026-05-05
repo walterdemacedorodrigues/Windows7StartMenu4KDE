@@ -6,6 +6,7 @@
 import QtQuick 2.4
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import ".."
+import "../functions" as Functions
 
 /**
  * Favorites grid component for the Windows 7 Start Menu
@@ -34,14 +35,9 @@ FavoritesGridView {
         id: favoritesWithRecentFiles
     }
 
-    // Action lists kept outside the ListModel to avoid VariantMap/List
-    // coercion of action.actionArgument (kicker doc actions use List/QUrl
-    // arguments, our favorite actions use VariantMap).
-    property var _actionListsByIndex: ({})
-    property var _recentFileActionsByIndex: ({})
-
-    function actionListForIndex(index) {
-        return _actionListsByIndex[index] || [];
+    // Get Recent Files Helper
+    Functions.GetRecentFiles {
+        id: getRecentFilesHelper
     }
 
     // Execute favorite app
@@ -63,10 +59,13 @@ FavoritesGridView {
     // Build local model with recent files data
     function buildFavoritesModel() {
         favoritesWithRecentFiles.clear();
-        _actionListsByIndex = {};
-        _recentFileActionsByIndex = {};
 
-        if (!externalFavoritesModel) return;
+        if (!externalFavoritesModel) {
+            console.log("[Favorites] No external model");
+            return;
+        }
+
+        console.log("[Favorites] Building model from", externalFavoritesModel.count, "favorites");
 
         for (var i = 0; i < externalFavoritesModel.count; i++) {
             try {
@@ -90,23 +89,20 @@ FavoritesGridView {
                     launcherUrl = favoriteId.indexOf("applications:") === 0 ? favoriteId : "applications:" + favoriteId;
                 }
 
+                // Get recent files info
+                var recentFilesCount = 0;
+                var hasRecentFiles = false;
+                if (launcherUrl) {
+                    recentFilesCount = getRecentFilesHelper.getRecentFilesCount(launcherUrl, favoritesGrid);
+                    hasRecentFiles = recentFilesCount > 0;
+                }
+
                 var iconValue = (typeof decoration === "object" && decoration !== null) ? "" : decoration || "";
 
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = externalFavoritesModel.data(favIndex, Qt.UserRole + 9) || [];
 
-                // Classify actions: forget→drop, _kicker_recentDocument→flyout, rest→right-click
-                var filteredActions = [];
-                var recentFileActions = [];
-                for (var k = 0; k < desktopActions.length; k++) {
-                    var act = desktopActions[k];
-                    var aid = (act && act.actionId) ? String(act.actionId) : "";
-                    if (aid === "forget" || aid === "forgetAll" || aid === "_kicker_forgetRecentDocuments") continue;
-                    filteredActions.push(act);
-                    if (aid === "_kicker_recentDocument") recentFileActions.push(act);
-                }
-
-                // Build right-click action list: Remove from Favorites + separator + filtered actions
+                // Merge: Remove from Favorites first, then desktop actions
                 var mergedActions = [];
                 mergedActions.push({
                     "text": i18n("Remove from Favorites"),
@@ -117,6 +113,15 @@ FavoritesGridView {
                         "favoriteId": launcherUrl || favoriteId
                     }
                 });
+                // Keep only real .desktop file actions; drop forget-related kicker actions
+                var filteredActions = [];
+                for (var k = 0; k < desktopActions.length; k++) {
+                    var act = desktopActions[k];
+                    var aid = (act && act.actionId) ? String(act.actionId) : "";
+                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
+                        filteredActions.push(act);
+                    }
+                }
                 if (filteredActions.length > 0) {
                     mergedActions.push({"type": "separator"});
                     for (var j = 0; j < filteredActions.length; j++) {
@@ -124,10 +129,9 @@ FavoritesGridView {
                     }
                 }
 
-                var localIndex = favoritesWithRecentFiles.count;
-                _actionListsByIndex[localIndex] = mergedActions;
-                _recentFileActionsByIndex[localIndex] = recentFileActions;
+                console.log("[Favorites.Merge]", display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
 
+                // Append to local model
                 favoritesWithRecentFiles.append({
                     "display": display,
                     "decoration": iconValue,
@@ -136,46 +140,48 @@ FavoritesGridView {
                     "url": url,
                     "favoriteId": favoriteId,
                     "launcherUrl": launcherUrl,
-                    "hasRecentFiles": recentFileActions.length > 0,
-                    "recentFilesCount": recentFileActions.length,
+                    "actionList": mergedActions,
+                    "hasRecentFiles": hasRecentFiles,
+                    "recentFilesCount": recentFilesCount,
                     "hasActionList": true,
                     "originalIndex": i
                 });
+
+                console.log("[Favorites] [" + i + "]", display, "→ hasRecentFiles:", hasRecentFiles, "count:", recentFilesCount);
             } catch (e) {
+                console.log("[Favorites] Error processing favorite", i, ":", e);
                 continue;
             }
         }
-    }
 
-    // Flyout component used for the Recent Files submenu
-    Component {
-        id: recentFlyoutComponent
-        RecentFilesFlyout {
-            triggerModel: externalFavoritesModel
-            title: i18n("Recent Files")
-        }
+        console.log("[Favorites] Model built with", favoritesWithRecentFiles.count, "items");
     }
 
     // Show recent files menu for a favorite item
     function showRecentFilesMenu(index, visualParent) {
         var item = favoritesWithRecentFiles.get(index);
-        if (!item) return;
+        if (!item || !item.launcherUrl) return;
 
-        var srcActions = _recentFileActionsByIndex[index] || [];
-        if (srcActions.length === 0) return;
-
+        // Destroy previous menu
         if (currentMenu) {
             currentMenu.destroy();
             currentMenu = null;
         }
 
-        currentMenu = recentFlyoutComponent.createObject(visualParent, {
-            "actionList": srcActions,
-            "triggerIndex": item.originalIndex
-        });
-        if (currentMenu) {
-            currentMenu.visualParent = visualParent;
-            currentMenu.openRelative();
+        try {
+            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, favoritesGrid);
+
+            if (result.count > 0) {
+                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
+                if (currentMenu) {
+                    currentMenu.visualParent = visualParent;
+                    currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
+                    currentMenu.openRelative();
+                    console.log("[Favorites] ✓ Menu opened for", item.display, "with", result.count, "items");
+                }
+            }
+        } catch (e) {
+            console.log("[Favorites] ✗ Menu error:", e);
         }
     }
 
@@ -220,6 +226,8 @@ FavoritesGridView {
                         break;
                     }
                 }
+
+                console.log("[Favorites] ✓ Opening submenu for index:", index);
                 showRecentFilesMenu(index, visualItem || favoritesGrid);
             }
         }
@@ -227,8 +235,11 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
+        console.log("[Favorites] Key pressed:", event.key, "Qt.Key_Right:", Qt.Key_Right, "currentMenu:", currentMenu);
+
         // Close submenu with Left or Escape
         if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
+            console.log("[Favorites] Closing submenu");
             event.accepted = true;
             currentMenu.close();
             currentMenu.destroy();
@@ -242,7 +253,11 @@ FavoritesGridView {
             return;
         }
 
+        // DON'T capture Key_Right here - let delegate handle it for submenus
+        // DON'T capture Key_Up here - let FavoritesGridView keyNavUp signal handle it
+
         if (event.key === Qt.Key_Down && currentIndex >= (count - Math.floor(width / cellWidth))) {
+            console.log("[Favorites] KeyNavDown to Recents");
             event.accepted = true;
             favoritesGrid.keyNavDown();
         }
@@ -262,6 +277,14 @@ FavoritesGridView {
             Qt.callLater(buildFavoritesModel);
         }
         function onDataChanged() {
+            Qt.callLater(buildFavoritesModel);
+        }
+    }
+
+    // Rebuild model once the XBEL cache is ready so hasRecentFiles flags are correct
+    Connections {
+        target: getRecentFilesHelper
+        function onCacheLoaded() {
             Qt.callLater(buildFavoritesModel);
         }
     }
