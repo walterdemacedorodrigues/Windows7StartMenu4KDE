@@ -8,6 +8,23 @@
 
 .pragma library
 
+// Normalize an action list that may be a JS Array, a ListModel proxy (.count + .get),
+// or a generic indexed object (.length) into a plain JS array of action items.
+function actionListToArray(items) {
+    if (!items) return [];
+    if (Array.isArray(items)) return items.slice();
+    var result = [];
+    if (typeof items.length === "number") {
+        for (var i = 0; i < items.length; i++) result.push(items[i]);
+        return result;
+    }
+    if (typeof items.count === "number" && typeof items.get === "function") {
+        for (var j = 0; j < items.count; j++) result.push(items.get(j));
+        return result;
+    }
+    return [];
+}
+
 function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId) {
     // Accessing actionList can be a costly operation, so we don't
     // access it until we need the menu.
@@ -15,16 +32,19 @@ function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId)
     var actions = createFavoriteActions(i18n, favoriteModel, favoriteId);
 
     if (actions) {
-        if (actionList && actionList.length > 0) {
-            var actionListCopy = Array.from(actionList);
-            var separator = { "type": "separator" };
-            actionListCopy.push(separator);
+        var existing = actionListToArray(actionList);
+        if (existing.length > 0) {
+            existing.push({ "type": "separator" });
             // actionList = actions.concat(actionList); // this crashes Qt O.o
-            actionListCopy.push.apply(actionListCopy, actions);
-            actionList = actionListCopy;
+            existing.push.apply(existing, actions);
+            actionList = existing;
         } else {
             actionList = actions;
         }
+    } else {
+        // No favorite actions, but still normalize so ActionMenu can iterate it
+        var normalized = actionListToArray(actionList);
+        if (normalized.length > 0) actionList = normalized;
     }
 
     actionMenu.actionList = actionList;
