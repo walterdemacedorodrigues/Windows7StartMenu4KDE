@@ -253,7 +253,12 @@ FocusScope {
                 Accessible.name: model.display
 
                 function openActionMenu(x, y) {
-                    var actionList = hasActionList ? model.actionList : [];
+                    var actionList = [];
+                    if (hasActionList) {
+                        actionList = (typeof GridView.view.actionListForIndex === "function")
+                                     ? GridView.view.actionListForIndex(model.index)
+                                     : (model.actionList || []);
+                    }
                     var favModel = GridView.view.model.favoritesModel;
 
                     Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
