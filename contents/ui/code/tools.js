@@ -36,7 +36,8 @@ function createFavoriteActions(i18n, favoriteModel, favoriteId) {
     }
 
 
-    if (favoriteModel.activities === undefined ||
+    if (!favoriteModel.activities ||
+        !favoriteModel.activities.runningActivities ||
         favoriteModel.activities.runningActivities.length <= 1) {
         var action = {};
 
