@@ -56,84 +56,6 @@ FavoritesGridView {
         return false;
     }
 
-    // ==== DIAGNOSTIC HELPERS ====
-    property bool _probedFav: false
-
-    function _probeFavoritesModel() {
-        try {
-            console.log("[Probe.Fav] === FavoritesModel introspection ===");
-            console.log("[Probe.Fav] count:", externalFavoritesModel.count,
-                        "enabled:", externalFavoritesModel.enabled,
-                        "maxFavorites:", externalFavoritesModel.maxFavorites);
-            if (typeof externalFavoritesModel.roleNames === "function") {
-                try {
-                    var names = externalFavoritesModel.roleNames();
-                    var keys = Object.keys(names);
-                    console.log("[Probe.Fav] roleNames keys count:", keys.length);
-                    for (var k = 0; k < keys.length; k++) {
-                        console.log("[Probe.Fav]   role", keys[k], "->",
-                            String(names[keys[k]]));
-                    }
-                } catch (e) {
-                    console.log("[Probe.Fav] roleNames() threw:", e);
-                }
-            } else {
-                console.log("[Probe.Fav] roleNames not callable");
-            }
-            if (externalFavoritesModel.count > 0) {
-                var idx0 = externalFavoritesModel.index(0, 0);
-                console.log("[Probe.Fav] row 0 display:",
-                    externalFavoritesModel.data(idx0, Qt.DisplayRole));
-                for (var p = 1; p <= 12; p++) {
-                    var v = externalFavoritesModel.data(idx0, Qt.UserRole + p);
-                    console.log("[Probe.Fav]   +" + p + " =>", _favSummary(v));
-                }
-            }
-        } catch (e) {
-            console.log("[Probe.Fav] error:", e);
-        }
-    }
-
-    function _favSummary(v) {
-        if (v === null) return "null";
-        if (v === undefined) return "undefined";
-        if (typeof v === "string") return "string(\"" + v.substring(0, 60) + "\")";
-        if (typeof v === "number") return "number(" + v + ")";
-        if (typeof v === "boolean") return "bool(" + v + ")";
-        if (Array.isArray(v)) {
-            var s = "array(len=" + v.length + ")";
-            if (v.length > 0 && typeof v[0] === "object") {
-                var first = v[0] || {};
-                var keys = [];
-                for (var k in first) keys.push(k + "=" + JSON.stringify(first[k]).substring(0, 30));
-                s += " first{" + keys.join(", ") + "}";
-            }
-            return s;
-        }
-        if (typeof v === "object") {
-            var s2 = "object";
-            if (typeof v.count === "number") s2 += " .count=" + v.count;
-            if (typeof v.length === "number") s2 += " .length=" + v.length;
-            return s2;
-        }
-        return typeof v;
-    }
-
-    function _favLogActionIds(label, actions) {
-        try {
-            var n = (actions && (actions.length !== undefined ? actions.length : actions.count)) || 0;
-            var ids = [];
-            for (var i = 0; i < n && i < 8; i++) {
-                var a = (typeof actions.get === "function") ? actions.get(i) : actions[i];
-                ids.push((a && a.actionId) ? String(a.actionId) : (a && a.text ? "txt:" + a.text : "<no-id>"));
-            }
-            console.log(label, "n=" + n, "ids=[" + ids.join(", ") + "]");
-        } catch (e) {
-            console.log(label, "log error:", e);
-        }
-    }
-    // ==== END DIAGNOSTIC HELPERS ====
-
     // Build local model with recent files data
     function buildFavoritesModel() {
         favoritesWithRecentFiles.clear();
@@ -141,11 +63,6 @@ FavoritesGridView {
         if (!externalFavoritesModel) {
             console.log("[Favorites] No external model");
             return;
-        }
-
-        if (!_probedFav) {
-            _probeFavoritesModel();
-            _probedFav = true;
         }
 
         console.log("[Favorites] Building model from", externalFavoritesModel.count, "favorites");
@@ -184,9 +101,6 @@ FavoritesGridView {
 
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = externalFavoritesModel.data(favIndex, Qt.UserRole + 9) || [];
-                _favLogActionIds("[Probe.Fav.+9] " + display, desktopActions);
-                var probeStd = externalFavoritesModel.data(favIndex, Qt.UserRole + 2);
-                if (probeStd) _favLogActionIds("[Probe.Fav.+2] " + display, probeStd);
 
                 // Merge: Remove from Favorites first, then desktop actions
                 var mergedActions = [];
@@ -199,13 +113,12 @@ FavoritesGridView {
                         "favoriteId": launcherUrl || favoriteId
                     }
                 });
-                // Keep only real .desktop file actions; drop kicker model actions
-                // (forget/forgetAll/etc.) which belong to the menu, not the app
+                // Keep only real .desktop file actions; drop forget-related kicker actions
                 var filteredActions = [];
                 for (var k = 0; k < desktopActions.length; k++) {
                     var act = desktopActions[k];
                     var aid = (act && act.actionId) ? String(act.actionId) : "";
-                    if (aid.indexOf("forget") === -1 && aid.indexOf("_kicker_") !== 0) {
+                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
                         filteredActions.push(act);
                     }
                 }
