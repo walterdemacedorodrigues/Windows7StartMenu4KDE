@@ -6,7 +6,6 @@
 import QtQuick 2.4
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import ".."
-import "../functions" as Functions
 
 /**
  * Favorites grid component for the Windows 7 Start Menu
@@ -33,11 +32,6 @@ FavoritesGridView {
     // Local model with recent files data
     ListModel {
         id: favoritesWithRecentFiles
-    }
-
-    // Menu builder helper
-    Functions.GetRecentFiles {
-        id: getRecentFilesHelper
     }
 
     // Action lists kept outside the ListModel to avoid VariantMap/List
@@ -153,6 +147,15 @@ FavoritesGridView {
         }
     }
 
+    // Flyout component used for the Recent Files submenu
+    Component {
+        id: recentFlyoutComponent
+        RecentFilesFlyout {
+            triggerModel: externalFavoritesModel
+            title: i18n("Recent Files")
+        }
+    }
+
     // Show recent files menu for a favorite item
     function showRecentFilesMenu(index, visualParent) {
         var item = favoritesWithRecentFiles.get(index);
@@ -166,32 +169,13 @@ FavoritesGridView {
             currentMenu = null;
         }
 
-        try {
-            var originalIndex = item.originalIndex;
-            var actions = [];
-            for (var i = 0; i < srcActions.length; i++) {
-                (function(srcAction) {
-                    actions.push({
-                        text: srcAction.text || "",
-                        icon: srcAction.icon || "document-open-recent",
-                        trigger: function() {
-                            if (externalFavoritesModel && typeof externalFavoritesModel.trigger === "function") {
-                                var closeRequested = externalFavoritesModel.trigger(originalIndex, "_kicker_recentDocument", srcAction.actionArgument);
-                                if (closeRequested) favoritesGrid.menuClosed();
-                            }
-                        }
-                    });
-                })(srcActions[i]);
-            }
-
-            currentMenu = getRecentFilesHelper.createMenuFromActions(actions, visualParent, i18n("Recent Files"));
-            if (currentMenu) {
-                currentMenu.visualParent = visualParent;
-                currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                currentMenu.openRelative();
-            }
-        } catch (e) {
-            console.log("[Favorites] Menu error:", e);
+        currentMenu = recentFlyoutComponent.createObject(visualParent, {
+            "actionList": srcActions,
+            "triggerIndex": item.originalIndex
+        });
+        if (currentMenu) {
+            currentMenu.visualParent = visualParent;
+            currentMenu.openRelative();
         }
     }
 
