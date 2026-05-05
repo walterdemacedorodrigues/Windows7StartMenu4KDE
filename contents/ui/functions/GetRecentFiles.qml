@@ -53,28 +53,63 @@ QtObject {
 
     function _loadXbel() {
         var dataPath = StandardPaths.writableLocation(StandardPaths.GenericDataLocation);
+        var url = "file://" + dataPath + "/recently-used.xbel";
+        console.log("[Probe.XBEL] (1) GET:", url);
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
             if (xhr.readyState !== XMLHttpRequest.DONE) return;
+            var textLen = (xhr.responseText && xhr.responseText.length) || 0;
+            console.log("[Probe.XBEL] (2) DONE status=", xhr.status,
+                        "responseText.length=", textLen,
+                        "responseXML=", (xhr.responseXML ? "non-null" : "NULL"));
             var newCache = {};
             if (xhr.responseXML) {
                 _parseXbel(xhr.responseXML, newCache);
+            } else if (xhr.responseText) {
+                console.log("[Probe.XBEL] (2b) responseXML is null. First 200 chars of text:",
+                            xhr.responseText.substring(0, 200).replace(/\n/g, "\\n"));
             }
             _xbelCache = newCache;
             _cacheReady = true;
+            console.log("[Probe.XBEL] (5) cache keys (n=" + Object.keys(newCache).length + "):",
+                        Object.keys(newCache).slice(0, 20).join(", "));
             getRecentFilesHelper.cacheLoaded();
         };
-        xhr.open("GET", "file://" + dataPath + "/recently-used.xbel");
+        xhr.open("GET", url);
         xhr.send();
     }
 
     function _parseXbel(doc, cache) {
         var BOOKMARK_NS = "http://www.freedesktop.org/standards/desktop-bookmarks";
         var bookmarks = doc.getElementsByTagName("bookmark");
+        console.log("[Probe.XBEL] (3) bookmarks.length =", bookmarks.length);
 
+        var probeFirstBookmarkLogged = false;
         for (var i = 0; i < bookmarks.length; i++) {
             var bm = bookmarks[i];
             var href = bm.getAttribute("href") || "";
+
+            if (!probeFirstBookmarkLogged) {
+                var nsTry = bm.getElementsByTagNameNS(BOOKMARK_NS, "application");
+                var prefixTry = bm.getElementsByTagName("bookmark:application");
+                var plainTry = bm.getElementsByTagName("application");
+                console.log("[Probe.XBEL] (4) first bookmark href=", href.substring(0, 80),
+                            "| getElementsByTagNameNS(NS,'application').length=", nsTry.length,
+                            "| getElementsByTagName('bookmark:application').length=", prefixTry.length,
+                            "| getElementsByTagName('application').length=", plainTry.length);
+                if (nsTry.length > 0) {
+                    console.log("[Probe.XBEL] (4b) NS app[0] name=", nsTry[0].getAttribute("name"),
+                                "exec=", (nsTry[0].getAttribute("exec") || "").substring(0, 60));
+                } else if (prefixTry.length > 0) {
+                    console.log("[Probe.XBEL] (4b) prefix app[0] name=", prefixTry[0].getAttribute("name"),
+                                "exec=", (prefixTry[0].getAttribute("exec") || "").substring(0, 60));
+                } else if (plainTry.length > 0) {
+                    console.log("[Probe.XBEL] (4b) plain app[0] name=", plainTry[0].getAttribute("name"),
+                                "exec=", (plainTry[0].getAttribute("exec") || "").substring(0, 60));
+                }
+                probeFirstBookmarkLogged = true;
+            }
+
             if (!href.startsWith("file://")) continue;
 
             // Extract title
@@ -245,27 +280,14 @@ QtObject {
 
         try {
             var favIndex = favoritesModel.index(index, 0);
-
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Testing index:", index);
-            console.log("  Qt.UserRole + 0:", favoritesModel.data(favIndex, Qt.UserRole));
-            console.log("  Qt.UserRole + 1:", favoritesModel.data(favIndex, Qt.UserRole + 1));
-            console.log("  Qt.UserRole + 2:", favoritesModel.data(favIndex, Qt.UserRole + 2));
-            console.log("  Qt.UserRole + 3:", favoritesModel.data(favIndex, Qt.UserRole + 3));
-            console.log("  Qt.UserRole + 4:", favoritesModel.data(favIndex, Qt.UserRole + 4));
-            console.log("  Qt.UserRole + 5:", favoritesModel.data(favIndex, Qt.UserRole + 5));
-
             for (var i = 0; i <= 10; i++) {
                 var urlTest = favoritesModel.data(favIndex, Qt.UserRole + i);
                 if (urlTest && typeof urlTest === "string" && urlTest.indexOf("applications:") === 0) {
-                    console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✓ Found URL at UserRole +" + i + ":", urlTest);
                     return urlTest;
                 }
             }
-
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✗ No valid URL found for index:", index);
             return "";
         } catch (e) {
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Exception:", e);
             return "";
         }
     }
