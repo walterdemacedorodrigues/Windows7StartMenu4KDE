@@ -249,18 +249,20 @@ FocusScope {
                 property bool hasActionList: ((model.favoriteId !== null) || (("hasActionList" in model) && (model.hasActionList === true)))
                 property bool hasRecentFiles: model.hasRecentFiles !== undefined ? model.hasRecentFiles : false
 
+                Component.onCompleted: {
+                    console.log("[FavGridView.Delegate] Created:", model.display, "hasRecentFiles:", hasRecentFiles, "from model.hasRecentFiles:", model.hasRecentFiles);
+                }
+
                 Accessible.role: Accessible.MenuItem
                 Accessible.name: model.display
 
                 function openActionMenu(x, y) {
-                    var actionList = [];
-                    if (hasActionList) {
-                        actionList = (typeof GridView.view.actionListForIndex === "function")
-                                     ? GridView.view.actionListForIndex(model.index)
-                                     : (model.actionList || []);
-                    }
+                    var actionList = hasActionList ? model.actionList : [];
                     var favModel = GridView.view.model.favoritesModel;
 
+                    console.log("[openActionMenu]", model.display, "→ actionList type:", typeof actionList, "count:", actionList?.count, "length:", actionList?.length);
+
+                    // fillActionMenu already adds "Remove from Favorites" or "Add to Favorites" automatically
                     Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
 
                     actionMenu.visualParent = delegateItem;
@@ -345,6 +347,12 @@ FocusScope {
                         height: parent.height
                         visible: delegateItem.hasRecentFiles
 
+                        Component.onCompleted: {
+                            if (delegateItem.hasRecentFiles) {
+                                console.log("[Button] ✓ VISIBLE for", model.display, "- width:", width, "x:", x, "y:", y, "opacity:", opacity);
+                            }
+                        }
+
                         Kirigami.Icon {
                             id: arrowIcon
                             anchors.centerIn: parent
@@ -360,6 +368,7 @@ FocusScope {
                             anchors.fill: parent
                             hoverEnabled: true
                             onClicked: {
+                                console.log("[Button] ✓ CLICKED:", model.display);
                                 itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
                             }
                         }
@@ -382,10 +391,14 @@ FocusScope {
                 }
 
                 Keys.onPressed: event => {
+                    console.log("[FavGridView.Delegate] Key pressed:", event.key, "hasRecentFiles:", hasRecentFiles, "Qt.Key_Right:", Qt.Key_Right);
+
                     if (event.key === Qt.Key_Menu && hasActionList) {
+                        console.log("[FavGridView.Delegate] Opening action menu");
                         event.accepted = true;
                         openActionMenu(delegateItem);
                     } else if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) {
+                        console.log("[FavGridView.Delegate] Enter/Return pressed");
                         event.accepted = true;
                         if ("trigger" in GridView.view.model) {
                             GridView.view.model.trigger(index, "", null);
@@ -395,10 +408,13 @@ FocusScope {
                         }
                         itemGrid.itemActivated(index, "", null);
                     } else if (event.key === Qt.Key_Right && hasRecentFiles) {
+                        console.log("[FavGridView.Delegate] Right arrow pressed - opening submenu, index:", delegateItem.itemIndex);
                         event.accepted = true;
+                        // Passar a referência do próprio delegateItem
                         itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
                     } else if (event.key === Qt.Key_Right && !hasRecentFiles) {
-                        event.accepted = false;
+                        console.log("[FavGridView.Delegate] Right arrow but no recent files - emit keyNavRight");
+                        event.accepted = false; // Let parent handle it
                         itemGrid.keyNavRight();
                     }
                 }
