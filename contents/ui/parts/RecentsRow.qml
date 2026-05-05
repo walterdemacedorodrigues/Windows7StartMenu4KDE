@@ -216,9 +216,10 @@ FavoritesGridView {
                 });
                 if (desktopActions.length > 0) {
                     mergedActions.push({"type": "separator"});
-                    for (var j = 0; j < desktopActions.length; j++) {
-                        mergedActions.push(desktopActions[j]);
-                    }
+                    mergedActions.push({
+                        "text": i18n("Actions"),
+                        "subActions": desktopActions
+                    });
                 }
 
                 console.log("[Recents.Merge]", item.display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);

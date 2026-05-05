@@ -113,6 +113,17 @@ Item {
         onContainsMouseChanged: item.GridView.view.itemContainsMouseChanged(containsMouse)
     }
 
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        onPressed: mouse => {
+            if (hasActionList) {
+                item.GridView.view.currentIndex = item.itemIndex;
+                openActionMenu(mouse.x, mouse.y);
+            }
+        }
+    }
+
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Menu && hasActionList) {
             event.accepted = true;
