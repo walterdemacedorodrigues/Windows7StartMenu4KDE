@@ -113,12 +113,21 @@ FavoritesGridView {
                         "favoriteId": launcherUrl || favoriteId
                     }
                 });
-                if (desktopActions.length > 0) {
+                // Keep only real .desktop file actions; drop kicker model actions
+                // (forget/forgetAll/etc.) which belong to the menu, not the app
+                var filteredActions = [];
+                for (var k = 0; k < desktopActions.length; k++) {
+                    var act = desktopActions[k];
+                    var aid = (act && act.actionId) ? String(act.actionId) : "";
+                    if (aid.indexOf("forget") === -1 && aid.indexOf("_kicker_") !== 0) {
+                        filteredActions.push(act);
+                    }
+                }
+                if (filteredActions.length > 0) {
                     mergedActions.push({"type": "separator"});
-                    mergedActions.push({
-                        "text": i18n("Actions"),
-                        "subActions": desktopActions
-                    });
+                    for (var j = 0; j < filteredActions.length; j++) {
+                        mergedActions.push(filteredActions[j]);
+                    }
                 }
 
                 console.log("[Favorites.Merge]", display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);

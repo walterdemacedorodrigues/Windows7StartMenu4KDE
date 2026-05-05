@@ -117,7 +117,7 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         onPressed: mouse => {
-            if (hasActionList) {
+            if (mouse.button === Qt.RightButton && hasActionList) {
                 item.GridView.view.currentIndex = item.itemIndex;
                 openActionMenu(mouse.x, mouse.y);
             }
