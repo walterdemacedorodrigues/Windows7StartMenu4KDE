@@ -8,62 +8,79 @@
 
 .pragma library
 
-// Normalize an action list that may be a JS Array, a ListModel proxy (.count + .get),
-// or a generic indexed object (.length) into a plain JS array of action items.
+// Normalize an action list that may be a JS Array, a ListModel proxy
+// (.count + .get), or a generic .length-indexed object into a plain JS array.
 function actionListToArray(items) {
-    if (!items) {
-        console.log("[actionListToArray] items is falsy");
-        return [];
-    }
-    var isArr = Array.isArray(items);
-    var lenType = typeof items.length;
-    var countType = typeof items.count;
-    var getType = typeof items.get;
-    console.log("[actionListToArray] isArray:", isArr,
-                "length type:", lenType, "value:", items.length,
-                "count type:", countType, "value:", items.count,
-                "get type:", getType);
-    if (isArr) return items.slice();
+    if (!items) return [];
     var result = [];
-    // Prefer .count + .get (QML ListModel proxy) since some proxies expose
-    // both .length (undefined or stale) and .count.
-    if (countType === "number" && getType === "function") {
+    // Prefer .count + .get for QML ListModel proxies, where .length is often
+    // undefined or stale.
+    if (typeof items.count === "number" && typeof items.get === "function") {
         for (var j = 0; j < items.count; j++) result.push(items.get(j));
-        console.log("[actionListToArray] used count+get, returned", result.length);
         return result;
     }
-    if (lenType === "number") {
+    if (Array.isArray(items)) return items.slice();
+    if (typeof items.length === "number") {
         for (var i = 0; i < items.length; i++) result.push(items[i]);
-        console.log("[actionListToArray] used length, returned", result.length);
         return result;
     }
-    console.log("[actionListToArray] no path matched, returning empty");
     return [];
 }
 
-function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId) {
-    // Accessing actionList can be a costly operation, so we don't
-    // access it until we need the menu.
+// Fetch the actionList for a given row in any kicker model. Discovers the
+// "actionList" role at runtime via roleNames() (with sensible fallbacks),
+// so it works uniformly against FavoritesModel, RecentUsageModel, and
+// the apps tree under RootModel.
+function getUpstreamActionList(model, row) {
+    if (!model || row === undefined || row === null || row < 0) return [];
+    try {
+        var modelIndex = model.index(row, 0);
+        var roleId = -1;
+        if (typeof model.roleNames === "function") {
+            var roles = model.roleNames();
+            for (var key in roles) {
+                var rname = roles[key];
+                var rstr = (rname && rname.toString) ? rname.toString() : rname;
+                if (rstr === "actionList") {
+                    roleId = parseInt(key);
+                    break;
+                }
+            }
+        }
+        // Discovered role first, then known fallbacks: standard
+        // AbstractModel ActionListRole = Qt.UserRole + 2 = 258, and the
+        // legacy +9 = 265 used by some kicker model variants in this fork.
+        var candidates = [];
+        if (roleId !== -1) candidates.push(roleId);
+        candidates.push(258);
+        candidates.push(265);
 
+        for (var c = 0; c < candidates.length; c++) {
+            var raw = model.data(modelIndex, candidates[c]);
+            var arr = actionListToArray(raw);
+            if (arr.length > 0) return arr;
+        }
+        return [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function fillActionMenu(i18n, actionMenu, actionList, favoriteModel, favoriteId) {
+    var existing = actionListToArray(actionList);
     var actions = createFavoriteActions(i18n, favoriteModel, favoriteId);
 
-    if (actions) {
-        var existing = actionListToArray(actionList);
-        if (existing.length > 0) {
-            existing.push({ "type": "separator" });
-            // actionList = actions.concat(actionList); // this crashes Qt O.o
-            existing.push.apply(existing, actions);
-            actionList = existing;
+    var combined = existing;
+    if (actions && actions.length > 0) {
+        if (combined.length > 0) {
+            combined.push({ "type": "separator" });
+            combined.push.apply(combined, actions);
         } else {
-            actionList = actions;
+            combined = actions;
         }
-    } else {
-        // No favorite actions, but still normalize so ActionMenu can iterate it
-        var normalized = actionListToArray(actionList);
-        if (normalized.length > 0) actionList = normalized;
     }
 
-    actionMenu.actionList = actionList;
+    actionMenu.actionList = combined;
 }
 
 function createFavoriteActions(i18n, favoriteModel, favoriteId) {

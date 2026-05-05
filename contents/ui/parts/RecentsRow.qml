@@ -47,6 +47,8 @@ FavoritesGridView {
     // Grid configuration
     width: parent.width
     model: appsWithRecentFiles
+    upstreamModel: frequentAppsModel
+    favoritesModelRef: favoritesModel
 
     // Get favorites snapshot for change detection
     function getFavoritesSnapshot() {
@@ -200,39 +202,8 @@ FavoritesGridView {
                 var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
-                // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
-                var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
-
-                // Merge: Add to Favorites first, then desktop actions
-                var mergedActions = [];
-                mergedActions.push({
-                    "text": i18n("Add to Favorites"),
-                    "icon": "bookmark-new",
-                    "actionId": "_kicker_favorite_add",
-                    "actionArgument": {
-                        "favoriteModel": favoritesModel,
-                        "favoriteId": launcherUrl
-                    }
-                });
-                // Keep only real .desktop file actions; drop kicker model actions
-                // (forget/forgetAll/etc.) which belong to the menu, not the app
-                var filteredActions = [];
-                for (var k = 0; k < desktopActions.length; k++) {
-                    var act = desktopActions[k];
-                    var aid = (act && act.actionId) ? String(act.actionId) : "";
-                    if (aid.indexOf("forget") === -1 && aid.indexOf("_kicker_") !== 0) {
-                        filteredActions.push(act);
-                    }
-                }
-                if (filteredActions.length > 0) {
-                    mergedActions.push({"type": "separator"});
-                    for (var j = 0; j < filteredActions.length; j++) {
-                        mergedActions.push(filteredActions[j]);
-                    }
-                }
-
-                console.log("[Recents.Merge]", item.display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
-
+                // actionList is fetched at right-click time from upstreamModel via
+                // FavoritesGridView's openActionMenu, so we don't materialise it here.
                 appsWithRecentFiles.append({
                     "display": item.display,
                     "decoration": iconValue,
@@ -241,7 +212,6 @@ FavoritesGridView {
                     "url": item.url,
                     "favoriteId": item.favoriteId,
                     "launcherUrl": launcherUrl,
-                    "actionList": mergedActions,
                     "originalIndex": item.originalIndex,
                     "hasActionList": true,
                     "hasRecentFiles": hasRecentFiles,
