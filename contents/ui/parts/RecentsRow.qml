@@ -39,10 +39,15 @@ FavoritesGridView {
         id: getRecentFilesHelper
     }
 
-    // Recent file actions extracted from kicker actionList,
-    // keyed by local model index. Kept outside the ListModel to avoid
-    // VariantMap/List coercion of action.actionArgument.
+    // Action lists kept outside the ListModel to avoid VariantMap/List
+    // coercion of action.actionArgument (kicker doc actions use List/QUrl
+    // arguments, our favorite actions use VariantMap).
+    property var _actionListsByIndex: ({})
     property var _recentFileActionsByIndex: ({})
+
+    function actionListForIndex(index) {
+        return _actionListsByIndex[index] || [];
+    }
 
     // State
     property var lastFavoritesSnapshot: []
@@ -128,6 +133,7 @@ FavoritesGridView {
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
         appsWithRecentFiles.clear();
+        _actionListsByIndex = {};
         _recentFileActionsByIndex = {};
         lastFavoritesSnapshot = getFavoritesSnapshot();
 
@@ -231,6 +237,7 @@ FavoritesGridView {
                 }
 
                 var localIndex = appsWithRecentFiles.count;
+                _actionListsByIndex[localIndex] = mergedActions;
                 _recentFileActionsByIndex[localIndex] = recentFileActions;
 
                 appsWithRecentFiles.append({
@@ -241,7 +248,6 @@ FavoritesGridView {
                     "url": item.url,
                     "favoriteId": item.favoriteId,
                     "launcherUrl": launcherUrl,
-                    "actionList": mergedActions,
                     "originalIndex": item.originalIndex,
                     "hasActionList": true,
                     "hasRecentFiles": recentFileActions.length > 0,
