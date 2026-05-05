@@ -11,17 +11,33 @@
 // Normalize an action list that may be a JS Array, a ListModel proxy (.count + .get),
 // or a generic indexed object (.length) into a plain JS array of action items.
 function actionListToArray(items) {
-    if (!items) return [];
-    if (Array.isArray(items)) return items.slice();
+    if (!items) {
+        console.log("[actionListToArray] items is falsy");
+        return [];
+    }
+    var isArr = Array.isArray(items);
+    var lenType = typeof items.length;
+    var countType = typeof items.count;
+    var getType = typeof items.get;
+    console.log("[actionListToArray] isArray:", isArr,
+                "length type:", lenType, "value:", items.length,
+                "count type:", countType, "value:", items.count,
+                "get type:", getType);
+    if (isArr) return items.slice();
     var result = [];
-    if (typeof items.length === "number") {
-        for (var i = 0; i < items.length; i++) result.push(items[i]);
-        return result;
-    }
-    if (typeof items.count === "number" && typeof items.get === "function") {
+    // Prefer .count + .get (QML ListModel proxy) since some proxies expose
+    // both .length (undefined or stale) and .count.
+    if (countType === "number" && getType === "function") {
         for (var j = 0; j < items.count; j++) result.push(items.get(j));
+        console.log("[actionListToArray] used count+get, returned", result.length);
         return result;
     }
+    if (lenType === "number") {
+        for (var i = 0; i < items.length; i++) result.push(items[i]);
+        console.log("[actionListToArray] used length, returned", result.length);
+        return result;
+    }
+    console.log("[actionListToArray] no path matched, returning empty");
     return [];
 }
 
