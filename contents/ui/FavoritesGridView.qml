@@ -32,12 +32,6 @@ FocusScope {
     property bool dropEnabled: false
     property bool showLabels: true
 
-    // Upstream kicker model the local ListModel was derived from. Used at
-    // right-click time to fetch a fresh actionList by role name.
-    property QtObject upstreamModel: null
-    // Favorites model used by createFavoriteActions to add Add/Remove items.
-    property QtObject favoritesModelRef: null
-
     property alias currentIndex: gridView.currentIndex
     property alias currentItem: gridView.currentItem
     property alias contentItem: gridView.contentItem
@@ -263,17 +257,13 @@ FocusScope {
                 Accessible.name: model.display
 
                 function openActionMenu(x, y) {
-                    // Pull a fresh actionList directly from the upstream kicker
-                    // model so favorites, recents and search results all behave
-                    // the same way.
-                    var origIdx = (model.originalIndex !== undefined) ? model.originalIndex : model.index;
-                    var upstream = GridView.view.upstreamModel;
-                    var actionList = upstream ? Tools.getUpstreamActionList(upstream, origIdx) : [];
-                    var favModel = GridView.view.favoritesModelRef
-                                   || (GridView.view.model ? GridView.view.model.favoritesModel : null);
-                    var favKey = launcherUrl || favoriteId;
+                    var actionList = hasActionList ? model.actionList : [];
+                    var favModel = GridView.view.model.favoritesModel;
 
-                    Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favKey);
+                    console.log("[openActionMenu]", model.display, "→ actionList type:", typeof actionList, "count:", actionList?.count, "length:", actionList?.length);
+
+                    // fillActionMenu already adds "Remove from Favorites" or "Add to Favorites" automatically
+                    Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
 
                     actionMenu.visualParent = delegateItem;
                     actionMenu.open(x, y);
