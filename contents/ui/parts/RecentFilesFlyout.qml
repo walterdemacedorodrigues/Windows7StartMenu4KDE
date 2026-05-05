@@ -9,22 +9,15 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 /*
  * Recent Files flyout menu.
  *
- * Mirrors the canonical Plasma Kickoff ActionMenu pattern: bind an
- * Instantiator directly to the JS array of kicker action items.
- * Never copies actions into a ListModel (which would corrupt the
- * heterogeneous actionArgument types — QStringList for recent docs,
- * KServiceAction for jumplist, etc.).
+ * Mirrors the canonical Plasma Kickoff ActionMenu pattern: an outer
+ * Item holds a PlasmaExtras.Menu as a property; sibling Instantiators
+ * populate the menu via addMenuItem(). PlasmaExtras.Menus default
+ * 'content' property only accepts QMenuItem, so the Instantiator must
+ * live outside the Menu.
  *
  * Reference: applets/kickoff/ActionMenu.qml in plasma-desktop.
- *
- * Expected action item shape (from kicker C++ at
- * applets/kicker/actionlist.cpp:319):
- *   { text: "filename.ext",
- *     icon: "mime-icon-name",
- *     actionId: "_kicker_recentDocument",
- *     actionArgument: [resource_url, mime_type] }   // QStringList
  */
-PlasmaExtras.Menu {
+Item {
     id: flyout
 
     // JS array of kicker action items (QVariantMaps from UserRole+9)
@@ -39,7 +32,19 @@ PlasmaExtras.Menu {
     // Optional header text shown as a disabled top item
     property string title: ""
 
-    placement: PlasmaExtras.Menu.RightPosedTopAlignedPopup
+    // Forwarded API
+    property alias visualParent: _menu.visualParent
+
+    visible: false
+
+    readonly property PlasmaExtras.Menu menu: PlasmaExtras.Menu {
+        id: _menu
+        placement: PlasmaExtras.Menu.RightPosedTopAlignedPopup
+    }
+
+    function openRelative() { _menu.openRelative(); }
+    function open(x, y) { _menu.open(x, y); }
+    function close() { _menu.close(); }
 
     // Header (only when title is set)
     Instantiator {
@@ -49,7 +54,8 @@ PlasmaExtras.Menu {
             enabled: false
             text: flyout.title
         }
-        onObjectAdded: (idx, obj) => flyout.addMenuItem(obj)
+        onObjectAdded: (idx, obj) => _menu.addMenuItem(obj)
+        onObjectRemoved: (idx, obj) => _menu.removeMenuItem(obj)
     }
 
     // Separator after header
@@ -59,13 +65,15 @@ PlasmaExtras.Menu {
         delegate: PlasmaExtras.MenuItem {
             separator: true
         }
-        onObjectAdded: (idx, obj) => flyout.addMenuItem(obj)
+        onObjectAdded: (idx, obj) => _menu.addMenuItem(obj)
+        onObjectRemoved: (idx, obj) => _menu.removeMenuItem(obj)
     }
 
-    // The actual action items, bound declaratively to the JS array
+    // Action items, bound declaratively to the JS array
     Instantiator {
         model: flyout.actionList
         delegate: PlasmaExtras.MenuItem {
+            required property var modelData
             text: modelData ? (modelData.text || "") : ""
             icon: modelData ? (modelData.icon || "") : ""
             onClicked: {
@@ -78,6 +86,7 @@ PlasmaExtras.Menu {
                 }
             }
         }
-        onObjectAdded: (idx, obj) => flyout.addMenuItem(obj)
+        onObjectAdded: (idx, obj) => _menu.addMenuItem(obj)
+        onObjectRemoved: (idx, obj) => _menu.removeMenuItem(obj)
     }
 }
