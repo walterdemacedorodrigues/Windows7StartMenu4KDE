@@ -40,7 +40,6 @@ FavoritesGridView {
     }
 
     // State
-    property bool modelsProcessed: false
     property var lastFavoritesSnapshot: []
     property QtObject currentMenu: null
 
@@ -127,90 +126,11 @@ FavoritesGridView {
     }
 
     // ==== DIAGNOSTIC HELPERS (one-shot probe of the upstream model) ====
-    function _probeRecentModel() {
-        try {
-            console.log("[Probe.Recents] === RecentUsageModel introspection ===");
-            console.log("[Probe.Recents] count:", frequentAppsModel.count);
-            // roleNames()
-            if (typeof frequentAppsModel.roleNames === "function") {
-                try {
-                    var names = frequentAppsModel.roleNames();
-                    var keys = Object.keys(names);
-                    console.log("[Probe.Recents] roleNames keys count:", keys.length);
-                    for (var k = 0; k < keys.length; k++) {
-                        var rk = keys[k];
-                        var rv = names[rk];
-                        var rs = (rv && rv.toString) ? rv.toString() : String(rv);
-                        console.log("[Probe.Recents]   role", rk, "->", rs);
-                    }
-                } catch (e) {
-                    console.log("[Probe.Recents] roleNames() threw:", e);
-                }
-            } else {
-                console.log("[Probe.Recents] roleNames is not callable from QML");
-            }
-            // Probe roles for first row
-            if (frequentAppsModel.count > 0) {
-                var idx0 = frequentAppsModel.index(0, 0);
-                var disp = frequentAppsModel.data(idx0, Qt.DisplayRole);
-                console.log("[Probe.Recents] row 0 display:", disp);
-                for (var p = 1; p <= 12; p++) {
-                    var v = frequentAppsModel.data(idx0, Qt.UserRole + p);
-                    console.log("[Probe.Recents]   +" + p + " =>", _summariseValue(v));
-                }
-            }
-        } catch (e) {
-            console.log("[Probe.Recents] error:", e);
-        }
-    }
-
-    function _summariseValue(v) {
-        if (v === null) return "null";
-        if (v === undefined) return "undefined";
-        if (typeof v === "string") return "string(\"" + v.substring(0, 60) + "\")";
-        if (typeof v === "number") return "number(" + v + ")";
-        if (typeof v === "boolean") return "bool(" + v + ")";
-        if (Array.isArray(v)) {
-            var s = "array(len=" + v.length + ")";
-            if (v.length > 0 && typeof v[0] === "object") {
-                var first = v[0] || {};
-                var keys = [];
-                for (var k in first) keys.push(k + "=" + JSON.stringify(first[k]).substring(0, 30));
-                s += " first{" + keys.join(", ") + "}";
-            }
-            return s;
-        }
-        if (typeof v === "object") {
-            var s2 = "object";
-            if (typeof v.count === "number") s2 += " .count=" + v.count;
-            if (typeof v.length === "number") s2 += " .length=" + v.length;
-            return s2;
-        }
-        return typeof v;
-    }
-
-    function _logActionIds(label, actions) {
-        try {
-            var n = (actions && (actions.length !== undefined ? actions.length : actions.count)) || 0;
-            var ids = [];
-            for (var i = 0; i < n && i < 8; i++) {
-                var a = (typeof actions.get === "function") ? actions.get(i) : actions[i];
-                ids.push((a && a.actionId) ? String(a.actionId) : (a && a.text ? "txt:" + a.text : "<no-id>"));
-            }
-            console.log(label, "n=" + n, "ids=[" + ids.join(", ") + "]");
-        } catch (e) {
-            console.log(label, "log error:", e);
-        }
-    }
-    // ==== END DIAGNOSTIC HELPERS ====
 
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
         appsWithRecentFiles.clear();
         lastFavoritesSnapshot = getFavoritesSnapshot();
-        if (!modelsProcessed) {
-            _probeRecentModel();
-        }
 
         // Collect favorite IDs to avoid duplicates
         var favoriteIds = new Set();
@@ -283,10 +203,6 @@ FavoritesGridView {
 
                 // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
                 var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
-                _logActionIds("[Probe.Recents.+9] " + item.display, desktopActions);
-                // Also probe +2 in case actionList lives at standard AbstractModel offset
-                var probeStd = frequentAppsModel.data(modelIndex, Qt.UserRole + 2);
-                if (probeStd) _logActionIds("[Probe.Recents.+2] " + item.display, probeStd);
 
                 // Merge: Add to Favorites first, then desktop actions
                 var mergedActions = [];
@@ -299,13 +215,12 @@ FavoritesGridView {
                         "favoriteId": launcherUrl
                     }
                 });
-                // Keep only real .desktop file actions; drop kicker model actions
-                // (forget/forgetAll/etc.) which belong to the menu, not the app
+                // Keep only real .desktop file actions; drop forget-related kicker actions
                 var filteredActions = [];
                 for (var k = 0; k < desktopActions.length; k++) {
                     var act = desktopActions[k];
                     var aid = (act && act.actionId) ? String(act.actionId) : "";
-                    if (aid.indexOf("forget") === -1 && aid.indexOf("_kicker_") !== 0) {
+                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
                         filteredActions.push(act);
                     }
                 }
@@ -338,8 +253,6 @@ FavoritesGridView {
                 continue;
             }
         }
-
-        modelsProcessed = true;
     }
 
     // Execute app
@@ -398,7 +311,6 @@ FavoritesGridView {
 
                     if (actionId === "_kicker_favorite_add" && typeof favoriteModel.addFavorite === "function") {
                         favoriteModel.addFavorite(favoriteId);
-                        modelsProcessed = false;
                         buildSegregatedModel();
                         return;
                     }
@@ -462,11 +374,9 @@ FavoritesGridView {
     Connections {
         target: frequentAppsModel
         function onCountChanged() {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
         function onDataChanged() {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
     }
@@ -479,7 +389,6 @@ FavoritesGridView {
         repeat: true
         onTriggered: {
             if (favoritesChanged()) {
-                modelsProcessed = false;
                 buildSegregatedModel();
             }
         }
@@ -491,7 +400,6 @@ FavoritesGridView {
 
     onVisibleChanged: {
         if (visible && favoritesChanged()) {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
     }
