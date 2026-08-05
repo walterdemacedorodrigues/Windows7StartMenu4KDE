@@ -13,7 +13,6 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.private.kicker 0.1 as Kicker
 import org.kde.taskmanager 0.1 as TaskManager
-import org.kde.plasma.private.taskmanager as TaskManagerApplet
 import "parts" as Parts
 
 Item {
@@ -46,11 +45,6 @@ Item {
     Kicker.RecentUsageModel {
         id: frequentAppsModel
         ordering: 1 // Popular / Frequently Used
-    }
-
-    // Backend do Task Manager para acessar arquivos recentes
-    TaskManagerApplet.Backend {
-        id: taskManagerBackend
     }
 
     // MODELO PARA ARQUIVOS RECENTES (usando dados reais)
@@ -118,209 +112,66 @@ Item {
         return true;
     }
 
-    // Processa arquivos recentes usando o taskManagerBackend (método correto)
+    // Processa arquivos recentes via Kicker.RecentUsageModel (XDG recently-used)
     function processRecentFiles() {
         recentFilesProcessed.clear();
 
-        // Usar o mesmo método do RecentnFavorites: obter arquivos via taskManagerBackend
-        for (var i = 0; i < Math.min(frequentAppsModel.count, 15); i++) {
+        for (var j = 0; j < Math.min(recentFilesModel.count, 10); j++) {
             try {
-                var modelIndex = frequentAppsModel.index(i, 0);
+                var modelIndex = recentFilesModel.index(j, 0);
                 var item = {
-                    display: frequentAppsModel.data(modelIndex, Qt.DisplayRole) || "",
-                    url: frequentAppsModel.data(modelIndex, Qt.UserRole + 1) || "",
-                    favoriteId: frequentAppsModel.data(modelIndex, Qt.UserRole + 2) || "",
-                    originalIndex: i
+                    display: recentFilesModel.data(modelIndex, Qt.DisplayRole) || "",
+                    url: recentFilesModel.data(modelIndex, Qt.UserRole + 1) || "",
+                    decoration: recentFilesModel.data(modelIndex, Qt.DecorationRole)
                 };
 
-                if (!isValidApplication(item)) continue;
+                if (!item.display) continue;
 
-                var launcherUrl = extractLauncherUrl(item, i, frequentAppsModel);
-                if (!launcherUrl) continue;
+                // Remover URLs da web
+                if (item.url.startsWith("http://") || item.url.startsWith("https://")) continue;
 
-                // Usar taskManagerBackend para obter arquivos recentes
-                try {
-                    var recentActions = taskManagerBackend.recentDocumentActions(launcherUrl, contentRoot);
+                // Remover aplicativos (.desktop)
+                if (item.url.indexOf(".desktop") !== -1 || item.url.indexOf("applications:") !== -1) continue;
 
-                    if (recentActions && recentActions.length > 0) {
-                        // Adicionar arquivos deste app
-                        for (var k = 0; k < Math.min(recentActions.length, 3); k++) {
-                            var action = recentActions[k];
-                            if (action && action.text) {
-                                var actionData = action.data || "";
-                                var fileName = action.text || "";
+                // Apenas entradas com extensão de arquivo
+                if (item.display.indexOf(".") === -1) continue;
 
-                                // FILTRAR: Remover URLs da web (http/https)
-                                if (actionData.startsWith("http://") || actionData.startsWith("https://")) {
-                                    continue;
-                                }
+                // Apenas arquivos locais
+                if (!item.url.startsWith("file://") && !item.url.startsWith("/")) continue;
 
-                                // FILTRAR: Remover pastas (URLs que terminam com / ou são diretórios)
-                                if (actionData.endsWith("/") || actionData.indexOf("file://") !== -1 && fileName.indexOf(".") === -1) {
-                                    continue;
-                                }
-
-                                // FILTRAR: Verificar se tem extensão de arquivo (apenas arquivos reais)
-                                if (fileName.indexOf(".") === -1) {
-                                    continue;
-                                }
-
-                                // Determinar ícone baseado na extensão ou usar o da action
-                                var extension = fileName.toLowerCase().split('.').pop();
-                                var icon = action.icon || "text-x-generic";
-
-                                if (!action.icon) {
-                                    if (extension === "pdf") icon = "application-pdf";
-                                    else if (extension === "doc" || extension === "docx") icon = "application-msword";
-                                    else if (extension === "xls" || extension === "xlsx") icon = "application-vnd.ms-excel";
-                                    else if (["jpg", "jpeg", "png", "gif", "bmp", "svg"].indexOf(extension) !== -1) icon = "image-x-generic";
-                                    else if (["mp3", "wav", "ogg", "flac", "m4a"].indexOf(extension) !== -1) icon = "audio-x-generic";
-                                    else if (["mp4", "avi", "mkv", "mov", "webm"].indexOf(extension) !== -1) icon = "video-x-generic";
-                                }
-
-                                var fileItem = {
-                                    "text": action.text,
-                                    "icon": icon,
-                                    "url": actionData,
-                                    "action": action,
-                                    "command": "# File action"
-                                };
-
-                                recentFilesProcessed.append(fileItem);
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Continuar silenciosamente
+                var icon = "text-x-generic";
+                if (typeof item.decoration === "string" && item.decoration !== "") {
+                    icon = item.decoration;
                 }
 
-                if (recentFilesProcessed.count >= 10) break;
+                recentFilesProcessed.append({
+                    "text": item.display,
+                    "icon": icon,
+                    "url": item.url || "",
+                    "command": item.url ? "xdg-open '" + item.url + "'" : "echo 'No URL'"
+                });
 
             } catch (e) {
                 continue;
-            }
-        }
-
-        // Fallback: Se não encontrou arquivos, tentar usar recentFilesModel com filtros
-        if (recentFilesProcessed.count === 0) {
-            for (var j = 0; j < Math.min(recentFilesModel.count, 10); j++) {
-                try {
-                    var modelIndex = recentFilesModel.index(j, 0);
-                    var item = {
-                        display: recentFilesModel.data(modelIndex, Qt.DisplayRole) || "",
-                        url: recentFilesModel.data(modelIndex, Qt.UserRole + 1) || "",
-                        decoration: recentFilesModel.data(modelIndex, Qt.DecorationRole)
-                    };
-
-                    if (!item.display) continue;
-
-                    // FILTRAR: Remover URLs da web
-                    if (item.url.startsWith("http://") || item.url.startsWith("https://")) {
-                        continue;
-                    }
-
-                    // FILTRAR: Remover aplicativos (.desktop)
-                    if (item.url.indexOf(".desktop") !== -1 || item.url.indexOf("applications:") !== -1) {
-                        continue;
-                    }
-
-                    // FILTRAR: Verificar se tem extensão de arquivo
-                    if (item.display.indexOf(".") === -1) {
-                        continue;
-                    }
-
-                    // FILTRAR: Aceitar apenas arquivos locais
-                    if (!item.url.startsWith("file://") && !item.url.startsWith("/")) {
-                        continue;
-                    }
-
-                    var icon = "text-x-generic";
-                    if (typeof item.decoration === "string" && item.decoration !== "") {
-                        icon = item.decoration;
-                    }
-
-                    var fileItem = {
-                        "text": item.display,
-                        "icon": icon,
-                        "url": item.url || "",
-                        "command": item.url ? "xdg-open '" + item.url + "'" : "echo 'No URL'"
-                    };
-
-                    recentFilesProcessed.append(fileItem);
-
-                } catch (e) {
-                    continue;
-                }
             }
         }
     }
 
-    // Processa locais recentes usando dados reais + fallback para locais padrão
+    // Processa locais recentes com locais padrão do usuário
     function processRecentPlaces() {
         recentPlacesProcessed.clear();
-        var placesFound = 0;
 
-        // Tentar obter locais de aplicativos como Dolphin usando dados reais
-        for (var j = 0; j < Math.min(frequentAppsModel.count, 10); j++) {
-            try {
-                var modelIndex = frequentAppsModel.index(j, 0);
-                var item = {
-                    display: frequentAppsModel.data(modelIndex, Qt.DisplayRole) || "",
-                    url: frequentAppsModel.data(modelIndex, Qt.UserRole + 1) || "",
-                    favoriteId: frequentAppsModel.data(modelIndex, Qt.UserRole + 2) || "",
-                    originalIndex: j
-                };
+        var defaultPlaces = [
+            { text: "Desktop",   icon: "user-desktop",      command: "xdg-open $(xdg-user-dir DESKTOP)" },
+            { text: "Downloads", icon: "folder-downloads",  command: "xdg-open $(xdg-user-dir DOWNLOAD)" },
+            { text: "Documents", icon: "folder-documents",  command: "xdg-open $(xdg-user-dir DOCUMENTS)" },
+            { text: "Images",    icon: "folder-pictures",   command: "xdg-open $(xdg-user-dir PICTURES)" },
+            { text: "Music",     icon: "folder-music",      command: "xdg-open $(xdg-user-dir MUSIC)" },
+            { text: "Videos",    icon: "folder-videos",     command: "xdg-open $(xdg-user-dir VIDEOS)" }
+        ];
 
-                if (!isValidApplication(item)) continue;
-
-                var launcherUrl = extractLauncherUrl(item, j, frequentAppsModel);
-                if (!launcherUrl) continue;
-
-                // Verificar se tem locais recentes (para apps como Dolphin)
-                try {
-                    var placesActions = taskManagerBackend.placesActions(launcherUrl, false, contentRoot);
-
-                    if (placesActions && placesActions.length > 0) {
-                        // Adicionar alguns locais deste app
-                        for (var k = 0; k < Math.min(placesActions.length, 3); k++) {
-                            var action = placesActions[k];
-                            if (action && action.text) {
-                                var placeItem = {
-                                    "text": action.text,
-                                    "icon": action.icon || "folder",
-                                    "command": "# Place action",
-                                    "action": action
-                                };
-
-                                recentPlacesProcessed.append(placeItem);
-                                placesFound++;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Continuar silenciosamente
-                }
-
-                if (placesFound >= 5) break;
-
-            } catch (e) {
-                continue;
-            }
-        }
-
-        // Fallback: Se não encontrou places suficientes, adicionar locais padrão
-        if (recentPlacesProcessed.count < 3) {
-            var defaultPlaces = [
-                { text: "Desktop", icon: "user-desktop", command: "xdg-open $(xdg-user-dir DESKTOP)" },
-                { text: "Downloads", icon: "folder-downloads", command: "xdg-open $(xdg-user-dir DOWNLOAD)" },
-                { text: "Documents", icon: "folder-documents", command: "xdg-open $(xdg-user-dir DOCUMENTS)" },
-                { text: "Images", icon: "folder-pictures", command: "xdg-open $(xdg-user-dir PICTURES)" },
-                { text: "Music", icon: "folder-music", command: "xdg-open $(xdg-user-dir MUSIC)" }
-            ];
-
-            for (var i = 0; i < defaultPlaces.length && recentPlacesProcessed.count < 8; i++) {
-                recentPlacesProcessed.append(defaultPlaces[i]);
-            }
+        for (var i = 0; i < defaultPlaces.length; i++) {
+            recentPlacesProcessed.append(defaultPlaces[i]);
         }
     }
 

@@ -40,7 +40,6 @@ FavoritesGridView {
     }
 
     // State
-    property bool modelsProcessed: false
     property var lastFavoritesSnapshot: []
     property QtObject currentMenu: null
 
@@ -125,6 +124,8 @@ FavoritesGridView {
 
         return true;
     }
+
+    // ==== DIAGNOSTIC HELPERS (one-shot probe of the upstream model) ====
 
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
@@ -214,10 +215,19 @@ FavoritesGridView {
                         "favoriteId": launcherUrl
                     }
                 });
-                if (desktopActions.length > 0) {
+                // Keep only real .desktop file actions; drop forget-related kicker actions
+                var filteredActions = [];
+                for (var k = 0; k < desktopActions.length; k++) {
+                    var act = desktopActions[k];
+                    var aid = (act && act.actionId) ? String(act.actionId) : "";
+                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
+                        filteredActions.push(act);
+                    }
+                }
+                if (filteredActions.length > 0) {
                     mergedActions.push({"type": "separator"});
-                    for (var j = 0; j < desktopActions.length; j++) {
-                        mergedActions.push(desktopActions[j]);
+                    for (var j = 0; j < filteredActions.length; j++) {
+                        mergedActions.push(filteredActions[j]);
                     }
                 }
 
@@ -243,8 +253,6 @@ FavoritesGridView {
                 continue;
             }
         }
-
-        modelsProcessed = true;
     }
 
     // Execute app
@@ -303,7 +311,6 @@ FavoritesGridView {
 
                     if (actionId === "_kicker_favorite_add" && typeof favoriteModel.addFavorite === "function") {
                         favoriteModel.addFavorite(favoriteId);
-                        modelsProcessed = false;
                         buildSegregatedModel();
                         return;
                     }
@@ -367,11 +374,9 @@ FavoritesGridView {
     Connections {
         target: frequentAppsModel
         function onCountChanged() {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
         function onDataChanged() {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
     }
@@ -384,7 +389,6 @@ FavoritesGridView {
         repeat: true
         onTriggered: {
             if (favoritesChanged()) {
-                modelsProcessed = false;
                 buildSegregatedModel();
             }
         }
@@ -396,7 +400,6 @@ FavoritesGridView {
 
     onVisibleChanged: {
         if (visible && favoritesChanged()) {
-            modelsProcessed = false;
             Qt.callLater(buildSegregatedModel);
         }
     }

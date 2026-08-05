@@ -113,10 +113,19 @@ FavoritesGridView {
                         "favoriteId": launcherUrl || favoriteId
                     }
                 });
-                if (desktopActions.length > 0) {
+                // Keep only real .desktop file actions; drop forget-related kicker actions
+                var filteredActions = [];
+                for (var k = 0; k < desktopActions.length; k++) {
+                    var act = desktopActions[k];
+                    var aid = (act && act.actionId) ? String(act.actionId) : "";
+                    if (aid !== "forget" && aid !== "forgetAll" && aid !== "_kicker_forgetRecentDocuments") {
+                        filteredActions.push(act);
+                    }
+                }
+                if (filteredActions.length > 0) {
                     mergedActions.push({"type": "separator"});
-                    for (var j = 0; j < desktopActions.length; j++) {
-                        mergedActions.push(desktopActions[j]);
+                    for (var j = 0; j < filteredActions.length; j++) {
+                        mergedActions.push(filteredActions[j]);
                     }
                 }
 
@@ -268,6 +277,14 @@ FavoritesGridView {
             Qt.callLater(buildFavoritesModel);
         }
         function onDataChanged() {
+            Qt.callLater(buildFavoritesModel);
+        }
+    }
+
+    // Rebuild model once the XBEL cache is ready so hasRecentFiles flags are correct
+    Connections {
+        target: getRecentFilesHelper
+        function onCacheLoaded() {
             Qt.callLater(buildFavoritesModel);
         }
     }
