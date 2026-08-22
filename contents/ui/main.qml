@@ -630,7 +630,8 @@ PlasmoidItem {
         appletInterface: kicker
         favoritesModel: globalFavorites
         runners: {
-            const results = ["krunner_services",
+            const results = ["quicksearch",
+                           "krunner_services",
                            "krunner_systemsettings",
                            "krunner_sessions",
                            "krunner_powerdevil",
