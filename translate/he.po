@@ -1,0 +1,141 @@
+# Translation of dittomenu in LANGUAGE
+# Copyright (C) 2023
+# This file is distributed under the same license as the dittomenu package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: dittomenu\n"
+"Report-Msgid-Bugs-To: https://store.kde.org/p/1312669/\n"
+"POT-Creation-Date: 2023-05-01 16:59-0300\n"
+"PO-Revision-Date: 2025-12-04 21:11+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: ../metadata.desktop
+msgid "Ditto Menu"
+msgstr "תפריט Ditto"
+
+#: ../metadata.desktop
+msgid "A configurable launcher menu"
+msgstr "תפריט משגר יישומים הניתן להתאמה אישית"
+
+#: ../contents/code/tools.js
+msgid "Remove from Favorites"
+msgstr "הסרה מהמועדפים"
+
+#: ../contents/code/tools.js
+msgid "Add to Favorites"
+msgstr "הוספה למועדפים"
+
+#: ../contents/code/tools.js
+msgid "On All Activities"
+msgstr "בכל הפעילויות"
+
+#: ../contents/code/tools.js
+msgid "On The Current Activity"
+msgstr "בפעילות הנוכחית"
+
+#: ../contents/code/tools.js
+msgid "Show In Favorites"
+msgstr "הצגה במועדפים"
+
+#: ../contents/config/config.qml
+msgid "General"
+msgstr "כללי"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Icon:"
+msgstr "סמל:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgctxt "@item:inmenu Open icon chooser dialog"
+msgid "Choose..."
+msgstr "בחירה..."
+
+#: ../contents/ui/ConfigGeneral.qml
+msgctxt "@item:inmenu Reset icon to default"
+msgid "Clear Icon"
+msgstr "ניקוי סמל"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show favorites first"
+msgstr "הצגת המועדפים תחילה"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Menu position"
+msgstr "מיקום התפריט"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Default"
+msgstr "ברירת מחדל"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Center"
+msgstr "במרכז"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Center bottom"
+msgstr "למטה במרכז"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show labels in two lines"
+msgstr "הצגת התוויות בשתי שורות"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Number of columns"
+msgstr "מספר טורים"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Number of rows"
+msgstr "מספר שורות"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Unhide all hidden applications"
+msgstr "הצגת כל הקבצים המוסתרים"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Unhidden!"
+msgstr "לא מוסתר!"
+
+#: ../contents/ui/main.qml
+msgid "Edit Applications..."
+msgstr "עריכת יישומים..."
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "System Preferences"
+msgstr "העדפות המערכת"
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "User Home"
+msgstr "תיקיית הבית של המשתמש"
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "Lock Screen"
+msgstr "נעילת המסך"
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "Leave ..."
+msgstr "יציאה מתוך ..."
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "Hi, "
+msgstr "שלום, "
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "Type here to search ..."
+msgstr "מקלידים כאן כדי לחפש..."
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "Favorites"
+msgstr "מועדפים"
+
+#: ../contents/ui/MenuRepresentation.qml
+msgid "All apps"
+msgstr "כל היישומים"
