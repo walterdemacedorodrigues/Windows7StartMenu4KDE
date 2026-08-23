@@ -110,6 +110,30 @@ Item {
             bottom: parent.bottom
         }
 
+        Rectangle {
+            id: listPanelTint
+            anchors { top: parent.top; left: parent.left; bottom: parent.bottom }
+            width: parent.width * contentRoot.listColumnRatio
+            z: -1
+            visible: Plasmoid.configuration.listPanelOpacity > 0
+            opacity: Plasmoid.configuration.listPanelOpacity / 100
+            color: Plasmoid.configuration.listPanelUseThemeColor
+                   ? Kirigami.Theme.backgroundColor
+                   : Plasmoid.configuration.listPanelColor
+        }
+
+        Rectangle {
+            id: sidePanelTint
+            anchors { top: parent.top; right: parent.right; bottom: parent.bottom }
+            width: parent.width * contentRoot.sideColumnRatio
+            z: -1
+            visible: Plasmoid.configuration.sidePanelOpacity > 0
+            opacity: Plasmoid.configuration.sidePanelOpacity / 100
+            color: Plasmoid.configuration.sidePanelUseThemeColor
+                   ? Kirigami.Theme.backgroundColor
+                   : Plasmoid.configuration.sidePanelColor
+        }
+
         // ---- Left column, favorites over recently used --------------------
 
         Item {

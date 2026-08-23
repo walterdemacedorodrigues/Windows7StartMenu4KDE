@@ -14,6 +14,11 @@ ConfigModel {
         source: "ConfigGeneral.qml"
     }
     ConfigCategory {
+        name: i18n("Appearance")
+        icon: "preferences-desktop-color"
+        source: "ConfigAppearance.qml"
+    }
+    ConfigCategory {
         name: i18n("Side Panel")
         icon: "view-list-details"
         source: "ConfigSidepanel.qml"

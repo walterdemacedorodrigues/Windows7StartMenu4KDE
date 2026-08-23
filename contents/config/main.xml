@@ -94,6 +94,46 @@
       <default>false</default>
     </entry>
 
+    <entry name="menuFrameUseThemeColor" type="Bool">
+      <label>Tint the whole menu with the theme background colour.</label>
+      <default>true</default>
+    </entry>
+    <entry name="menuFrameColor" type="Color">
+      <default>#31363b</default>
+    </entry>
+    <entry name="menuFrameOpacity" type="Int">
+      <label>Opacity of the tint painted over the whole menu, 0 leaves the theme alone.</label>
+      <default>0</default>
+      <min>0</min>
+      <max>100</max>
+    </entry>
+
+    <entry name="listPanelUseThemeColor" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="listPanelColor" type="Color">
+      <default>#31363b</default>
+    </entry>
+    <entry name="listPanelOpacity" type="Int">
+      <label>Opacity of the tint painted behind the application list, 0 leaves the theme alone.</label>
+      <default>0</default>
+      <min>0</min>
+      <max>100</max>
+    </entry>
+
+    <entry name="sidePanelUseThemeColor" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="sidePanelColor" type="Color">
+      <default>#31363b</default>
+    </entry>
+    <entry name="sidePanelOpacity" type="Int">
+      <label>Opacity of the tint painted behind the side panel, 0 leaves the theme alone.</label>
+      <default>0</default>
+      <min>0</min>
+      <max>100</max>
+    </entry>
+
     <entry name="showFilterList" type="Bool">
       <default>true</default>
     </entry>

@@ -80,6 +80,20 @@ PlasmoidItem {
         property bool systemActionInProgress: false
         property string currentAction: ""
 
+        // Tint over the theme background. Nothing is drawn while the opacity
+        // sits at zero, so the stock look stays exactly as the theme paints it.
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            z: -2
+            radius: Math.round(Kirigami.Units.gridUnit * 0.45)
+            visible: Plasmoid.configuration.menuFrameOpacity > 0
+            opacity: Plasmoid.configuration.menuFrameOpacity / 100
+            color: Plasmoid.configuration.menuFrameUseThemeColor
+                   ? Kirigami.Theme.backgroundColor
+                   : Plasmoid.configuration.menuFrameColor
+        }
+
         // Right clicking empty space inside the popup reached nothing, so the
         // applet options were only available from the panel button.
         MouseArea {
@@ -439,6 +453,10 @@ PlasmoidItem {
             // Without an explicit entry point the popup opens with focus on a
             // container that handles no keys, so the arrows did nothing at all.
             function onExpandedChanged() {
+                // The query outlives the popup otherwise, so reopening still
+                // showed the previous search instead of the menu.
+                searchBar.clear();
+                root.setShowApps(0);
                 if (kicker.expanded) Qt.callLater(() => searchBar.focusSearchField());
             }
             function onModelsRefreshed() {
