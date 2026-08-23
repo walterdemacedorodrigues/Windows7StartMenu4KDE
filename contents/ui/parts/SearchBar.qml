@@ -1,6 +1,6 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick
@@ -34,6 +34,15 @@ Rectangle {
     signal searchTextChanged(string text)
     signal escapePressed()
     signal navigateToResults()
+    signal keyNavDown()
+    signal contextMenuRequested(real x, real y)
+
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        acceptedButtons: Qt.RightButton
+        onClicked: mouse => searchBar.contextMenuRequested(mouse.x, mouse.y)
+    }
 
     // Public functions
     function clear() {
@@ -49,7 +58,7 @@ Rectangle {
     }
 
     function focusSearchField() {
-        searchField.focus = true;
+        searchField.forceActiveFocus();
     }
 
     // Search field
@@ -75,12 +84,6 @@ Rectangle {
                 searchBar.runnerModelRef.query = text;
             }
 
-            // Notify menu content
-            if (searchBar.menuContentRef && searchBar.menuContentRef.onSearchTextChanged) {
-                searchBar.menuContentRef.onSearchTextChanged(text);
-            }
-
-            // Emit signal
             searchBar.searchTextChanged(text);
         }
 
@@ -110,26 +113,18 @@ Rectangle {
                 }
             } else if (event.key === Qt.Key_Up) {
                 event.accepted = true;
-                console.log("[Search] UP - going to last Recents item");
-                // Go to last Recents item
-                if (searchBar.menuContentRef && searchBar.menuContentRef.favoritesComponent) {
-                    var recentsGrid = searchBar.menuContentRef.favoritesComponent.children[0].children[2]; // Column > Recents
-                    if (recentsGrid && recentsGrid.count > 0) {
-                        recentsGrid.forceActiveFocus();
-                        recentsGrid.currentIndex = recentsGrid.count - 1;
-                    }
+                const recents = searchBar.menuContentRef ? searchBar.menuContentRef.recentsGrid : null;
+                if (recents && recents.visible && recents.count > 0) {
+                    recents.forceActiveFocus();
+                    recents.currentIndex = recents.count - 1;
                 }
             } else if (event.key === Qt.Key_Down) {
                 event.accepted = true;
-                console.log("[Search] DOWN - going to All Apps button");
-                // Go to All Apps button
-                if (typeof allAppsButton !== "undefined") {
-                    allAppsButton.forceActiveFocus();
-                } else {
-                    // Fallback to navigate to results
-                    searchBar.navigateToResults();
-                }
-            } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+                searchBar.keyNavDown();
+            } else if (event.key === Qt.Key_Tab) {
+                event.accepted = true;
+                searchBar.keyNavDown();
+            } else if (event.key === Qt.Key_Backtab) {
                 event.accepted = true;
                 searchBar.navigateToResults();
             }

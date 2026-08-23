@@ -3,10 +3,10 @@
     "KPlugin": {
         "Id": "Windows7StartMenu4KDE",
         "Name": "Windows7StartMenu4KDE",
-        "Description": "AS it says in the title.",
+        "Description": "Windows 7 style application launcher",
         "Category": "Application Launchers",
         "Icon": "start-here-kde",
-        "License": "GPL-2.0+",
+        "License": "AGPL-3.0-or-later",
         "EnabledByDefault": true,
         "Authors": [
             {

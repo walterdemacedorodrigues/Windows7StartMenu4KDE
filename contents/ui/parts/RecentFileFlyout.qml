@@ -1,6 +1,6 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick 2.4
@@ -51,7 +51,6 @@ QtObject {
             }
             return false;
         } catch (e) {
-            console.log("[RecentFileFlyout] ✗ Error:", e);
             return false;
         }
     }

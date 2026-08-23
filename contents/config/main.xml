@@ -7,13 +7,13 @@
 
   <group name="General">
     <entry name="displayPosition" type="Enum">
-    <label>Position.</label>
+    <label>Where the menu is placed when it opens.</label>
     <choices name="Settings::displayPosition">
       <choice name="Default" />
       <choice name="Center" />
       <choice name="CenterBottom" />
     </choices>
-    <default>Center</default>
+    <default>Default</default>
     </entry>
 
     <entry name="icon" type="String">
@@ -26,31 +26,96 @@
       <default></default>
     </entry>
 
-    <entry name="showFilterList" type="Bool">
+    <entry name="useWindowsOrb" type="Bool">
+      <label>Draw the panel button as a Windows style orb instead of a system icon.</label>
+      <default>false</default>
+    </entry>
+    <entry name="orbImage" type="Url">
+      <label>ClassicShell/OpenShell compatible three frame PNG used for the orb.</label>
+      <default></default>
+    </entry>
+    <entry name="orbWidth" type="Int">
+      <label>Orb width in pixels, 0 means the texture's own width.</label>
+      <default>0</default>
+      <min>0</min>
+    </entry>
+    <entry name="useWindowsIcons" type="Bool">
+      <label>Prefer Windows style icon names for the side panel, falling back to system icons.</label>
+      <default>false</default>
+    </entry>
+    <entry name="useGenericIcons" type="Bool">
+      <label>Draw application categories with a plain folder icon.</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="hierarchicalAllPrograms" type="Bool">
+      <label>Browse All Programs as an expandable category tree.</label>
+      <default>true</default>
+    </entry>
+    <entry name="highlightNewApps" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="switchCategoriesOnHover" type="Bool">
+      <label>Whether to switch between menu categories by hovering them.</label>
       <default>true</default>
     </entry>
 
+    <entry name="showRecentsView" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="numberRecentApps" type="Int">
+      <label>How many recently used applications the left column renders.</label>
+      <default>10</default>
+      <min>0</min>
+      <max>20</max>
+    </entry>
+    <entry name="numberRecentFiles" type="Int">
+      <label>How many recent documents each jump list renders.</label>
+      <default>10</default>
+      <min>1</min>
+      <max>30</max>
+    </entry>
+    <entry name="recentOrdering" type="Int">
+      <default>0</default>
+    </entry>
+
+    <entry name="sidePanelVisibility" type="String">
+      <label>JSON object naming which side panel entries are shown.</label>
+      <default>{"Home directory":1,"Documents":1,"Pictures":1,"Music":1,"Videos":1,"Downloads":1,"Recent Items":1,"Computer":1,"Network":1,"Control Panel":1,"Default Programs":1,"Run":1}</default>
+    </entry>
+    <entry name="submenuHoverDelay" type="Int">
+      <label>Milliseconds a side panel entry must be hovered before its flyout opens.</label>
+      <default>400</default>
+      <min>0</min>
+      <max>2000</max>
+    </entry>
+    <entry name="useFullName" type="Bool">
+      <label>Label the home entry with the full name instead of the login name.</label>
+      <default>false</default>
+    </entry>
+
+    <entry name="showFilterList" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="appNameFormat" type="Int">
       <default>0</default>
     </entry>
     <entry name="limitDepth" type="Bool">
       <default>false</default>
     </entry>
-
     <entry name="numberColumns" type="Int">
-    <default>6</default>
+      <default>6</default>
     </entry>
-
     <entry name="numberRows" type="Int">
-    <default>4</default>
+      <default>4</default>
     </entry>
 
     <entry name="favoriteApps" type="StringList">
-      <default>preferred://browser,kontact.desktop,systemsettings.desktop,org.kde.dolphin.desktop,ktp-contactlist.desktop,org.kde.kate.desktop</default>
+      <default>preferred://browser,org.kde.dolphin.desktop</default>
     </entry>
     <entry name="favoriteSystemActions" type="StringList">
          <label>List of system action favorites.</label>
-         <default>logout,reboot,shutdown</default>
+         <default>lock-screen,logout,switch-user,suspend,hibernate,reboot,shutdown</default>
     </entry>
     <entry name="hiddenApplications" type="StringList">
       <default></default>
@@ -68,27 +133,22 @@
     <entry name="alignResultsToBottom" type="Bool">
       <default>true</default>
     </entry>
-    <entry name="switchCategoriesOnHover" type="Bool">
-      <label>Whether to switch between menu categories by hovering them.</label>
-      <default>true</default>
-    </entry>
 
     <entry name="removeApplicationCommand" type="String">
       <default>muon-discover --application</default>
     </entry>
     <entry name="showAtCenter" type="Bool">
        <default>true</default>
-   </entry>   
+    </entry>
     <entry name="showFavoritesFirst" type="Bool">
        <default>false</default>
-   </entry>
+    </entry>
     <entry name="favoritesPortedToKAstats" type="Bool">
       <label>Are the favorites ported to use KActivitiesStats to allow per-activity favorites</label>
       <default>false</default>
     </entry>
-
     <entry name="viewUser" type="Bool">
-    <default>true</default>
+      <default>true</default>
     </entry>
   </group>
 </kcfg>

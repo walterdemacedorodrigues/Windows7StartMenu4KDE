@@ -1,7 +1,7 @@
 /*
     SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
     SPDX-FileCopyrightText: 2015 Eike Hein <hein@kde.org>
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: AGPL-3.0-or-later
 */
 
 import QtQuick 2.15

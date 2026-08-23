@@ -1,12 +1,13 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick
 import Qt5Compat.GraphicalEffects
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
+import ".."
 
 /**
  * Floating user avatar component for the Windows 7 Start Menu
@@ -88,6 +89,11 @@ Rectangle {
         cache: false
         visible: source !== ""
         fillMode: Image.PreserveAspectCrop
+
+        // Changing the account picture dissolves instead of snapping.
+        CrossFadeBehavior on source {
+            fadeDuration: Kirigami.Units.longDuration * 2
+        }
 
         layer.enabled: true
         layer.effect: OpacityMask {

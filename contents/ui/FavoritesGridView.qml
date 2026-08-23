@@ -3,7 +3,7 @@
 /*
     SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
     SPDX-FileCopyrightText: 2015 Eike Hein <hein@kde.org>
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: AGPL-3.0-or-later
 */
 
 import QtQuick 2.15
@@ -36,6 +36,7 @@ FocusScope {
     property alias currentItem: gridView.currentItem
     property alias contentItem: gridView.contentItem
     property alias count: gridView.count
+    readonly property alias contentHeight: gridView.height
     property alias model: gridView.model
 
     property alias cellWidth: gridView.cellWidth
@@ -52,8 +53,10 @@ FocusScope {
         }
     }
 
-    onFocusChanged: {
-        if (!focus) {
+    // Active focus, not focus. Inside a focus scope the plain property stays
+    // true after the user leaves, which left two rows highlighted at once.
+    onActiveFocusChanged: {
+        if (!activeFocus) {
             currentIndex = -1;
         }
     }
@@ -250,7 +253,6 @@ FocusScope {
                 property bool hasRecentFiles: model.hasRecentFiles !== undefined ? model.hasRecentFiles : false
 
                 Component.onCompleted: {
-                    console.log("[FavGridView.Delegate] Created:", model.display, "hasRecentFiles:", hasRecentFiles, "from model.hasRecentFiles:", model.hasRecentFiles);
                 }
 
                 Accessible.role: Accessible.MenuItem
@@ -260,7 +262,6 @@ FocusScope {
                     var actionList = hasActionList ? model.actionList : [];
                     var favModel = GridView.view.model.favoritesModel;
 
-                    console.log("[openActionMenu]", model.display, "→ actionList type:", typeof actionList, "count:", actionList?.count, "length:", actionList?.length);
 
                     // fillActionMenu already adds "Remove from Favorites" or "Add to Favorites" automatically
                     Tools.fillActionMenu(i18n, actionMenu, actionList, favModel, favoriteId);
@@ -349,7 +350,6 @@ FocusScope {
 
                         Component.onCompleted: {
                             if (delegateItem.hasRecentFiles) {
-                                console.log("[Button] ✓ VISIBLE for", model.display, "- width:", width, "x:", x, "y:", y, "opacity:", opacity);
                             }
                         }
 
@@ -368,7 +368,6 @@ FocusScope {
                             anchors.fill: parent
                             hoverEnabled: true
                             onClicked: {
-                                console.log("[Button] ✓ CLICKED:", model.display);
                                 itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
                             }
                         }
@@ -391,14 +390,11 @@ FocusScope {
                 }
 
                 Keys.onPressed: event => {
-                    console.log("[FavGridView.Delegate] Key pressed:", event.key, "hasRecentFiles:", hasRecentFiles, "Qt.Key_Right:", Qt.Key_Right);
 
                     if (event.key === Qt.Key_Menu && hasActionList) {
-                        console.log("[FavGridView.Delegate] Opening action menu");
                         event.accepted = true;
                         openActionMenu(delegateItem);
                     } else if ((event.key === Qt.Key_Enter || event.key === Qt.Key_Return)) {
-                        console.log("[FavGridView.Delegate] Enter/Return pressed");
                         event.accepted = true;
                         if ("trigger" in GridView.view.model) {
                             GridView.view.model.trigger(index, "", null);
@@ -408,12 +404,10 @@ FocusScope {
                         }
                         itemGrid.itemActivated(index, "", null);
                     } else if (event.key === Qt.Key_Right && hasRecentFiles) {
-                        console.log("[FavGridView.Delegate] Right arrow pressed - opening submenu, index:", delegateItem.itemIndex);
                         event.accepted = true;
                         // Passar a referência do próprio delegateItem
                         itemGrid.submenuRequested(delegateItem.itemIndex, 0, 0);
                     } else if (event.key === Qt.Key_Right && !hasRecentFiles) {
-                        console.log("[FavGridView.Delegate] Right arrow but no recent files - emit keyNavRight");
                         event.accepted = false; // Let parent handle it
                         itemGrid.keyNavRight();
                     }
@@ -424,7 +418,10 @@ FocusScope {
                 property bool isDropPlaceHolder: "dropPlaceholderIndex" in itemGrid.model && itemGrid.currentIndex === itemGrid.model.dropPlaceholderIndex
 
                 PlasmaExtras.Highlight {
+                    // Focus alone is not enough; the row kept its selection after
+                    // the user moved to another column and both looked selected.
                     visible: gridView.currentItem && !isDropPlaceHolder
+                             && (itemGrid.activeFocus || hoverArea.containsMouse)
                     hovered: true
                     pressed: hoverArea.pressed
 

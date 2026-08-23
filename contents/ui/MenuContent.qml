@@ -1,181 +1,78 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
  *  SPDX-FileCopyrightText: zayronxio
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-FileCopyrightText: 2023 WackyIdeas <wackyideas@disroot.org>
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import QtQuick 2.4
-import QtQuick.Layouts 1.1
+import QtQuick
+import QtQuick.Layouts
 import org.kde.plasma.plasmoid 2.0
-import org.kde.plasma.core 2.0 as PlasmaCore
+import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components 3.0 as PC3
-import org.kde.plasma.extras 2.0 as PlasmaExtras
+import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.private.kicker 0.1 as Kicker
-import org.kde.taskmanager 0.1 as TaskManager
 import "parts" as Parts
 
 Item {
     id: contentRoot
 
-    // Properties passed from parent
     property int showApps: 0
     property bool searching: false
     property int cellHeight: 48
     property int iconSize: 32
-    property alias searchField: searchField
-    property alias favoritesComponent: favoritesContainer
-    property alias allAppsGrid: allAppsGrid
-    property alias runnerGrid: runnerGrid
-    property alias mainColumn: mainColumn
-    property alias sidebar: sidebar
     property var executable
 
-    // Signal sent when search text changes
+    property alias searchField: searchField
+    property alias favoritesComponent: favoritesContainer
+    property alias favoritesGrid: favoritesGrid
+    property alias recentsGrid: recentsGrid
+    property alias appsView: appsView
+    property alias runnerGrid: runnerGrid
+    property alias sidebar: sidebar
+
     signal searchTextChanged(string text)
+    signal closeRequested()
+    signal contextMenuRequested(real x, real y)
 
-    // MODELOS DE DADOS REAIS
-    // Modelo de arquivos recentes
-    Kicker.RecentUsageModel {
-        id: recentFilesModel
-        ordering: 0 // Recent
-    }
-
-    // Modelo de aplicativos mais usados
-    Kicker.RecentUsageModel {
-        id: frequentAppsModel
-        ordering: 1 // Popular / Frequently Used
-    }
-
-    // MODELO PARA ARQUIVOS RECENTES (usando dados reais)
-    ListModel {
-        id: recentFilesProcessed
-    }
-
-    // MODELO PARA LOCAIS RECENTES (usando dados reais)
-    ListModel {
-        id: recentPlacesProcessed
-    }
-
-    // Extrai automaticamente URL do launcher de um item do modelo
-    function extractLauncherUrl(modelItem, originalIndex, sourceModel) {
-        if (!modelItem) return "";
-
-        try {
-            var modelIndex = sourceModel.index(originalIndex, 0);
-            var desktopFile = sourceModel.data(modelIndex, Qt.UserRole + 3);
-
-            if (desktopFile && desktopFile.indexOf(".desktop") !== -1) {
-                return "applications:" + desktopFile;
-            }
-        } catch (e) {
-            // Continue with fallbacks
-        }
-
-        var url = modelItem.url || "";
-        var favoriteId = modelItem.favoriteId || "";
-
-        if (url && url.indexOf(".desktop") !== -1) {
-            return url;
-        }
-
-        if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
-            return "applications:" + favoriteId;
-        }
-
-        return "";
-    }
-
-    // Verifica se um item é um aplicativo válido
-    function isValidApplication(modelItem) {
-        if (!modelItem) return false;
-
-        var display = modelItem.display || "";
-        var url = modelItem.url || "";
-        var favoriteId = modelItem.favoriteId || "";
-
-        if (!display || display.trim() === "") return false;
-
-        // Rejeitar categorias que não são aplicativos
-        if (favoriteId === "Pastas" || favoriteId === "Folders" || favoriteId === "Arquivos") return false;
-
-        // Aceitar automaticamente categoria "Aplicativos"
-        if (favoriteId === "Aplicativos") return true;
-
-        // URLs com .desktop são aplicativos
-        if (url && url.toLowerCase().indexOf(".desktop") !== -1) return true;
-
-        // Validações básicas
-        if (display.length < 2) return false;
-        if (/^[0-9\W]+$/.test(display)) return false;
-
-        return true;
-    }
-
-    // Processa arquivos recentes via Kicker.RecentUsageModel (XDG recently-used)
-    function processRecentFiles() {
-        recentFilesProcessed.clear();
-
-        for (var j = 0; j < Math.min(recentFilesModel.count, 10); j++) {
-            try {
-                var modelIndex = recentFilesModel.index(j, 0);
-                var item = {
-                    display: recentFilesModel.data(modelIndex, Qt.DisplayRole) || "",
-                    url: recentFilesModel.data(modelIndex, Qt.UserRole + 1) || "",
-                    decoration: recentFilesModel.data(modelIndex, Qt.DecorationRole)
-                };
-
-                if (!item.display) continue;
-
-                // Remover URLs da web
-                if (item.url.startsWith("http://") || item.url.startsWith("https://")) continue;
-
-                // Remover aplicativos (.desktop)
-                if (item.url.indexOf(".desktop") !== -1 || item.url.indexOf("applications:") !== -1) continue;
-
-                // Apenas entradas com extensão de arquivo
-                if (item.display.indexOf(".") === -1) continue;
-
-                // Apenas arquivos locais
-                if (!item.url.startsWith("file://") && !item.url.startsWith("/")) continue;
-
-                var icon = "text-x-generic";
-                if (typeof item.decoration === "string" && item.decoration !== "") {
-                    icon = item.decoration;
-                }
-
-                recentFilesProcessed.append({
-                    "text": item.display,
-                    "icon": icon,
-                    "url": item.url || "",
-                    "command": item.url ? "xdg-open '" + item.url + "'" : "echo 'No URL'"
-                });
-
-            } catch (e) {
-                continue;
-            }
+    // Covers only the empty strip under a column, so the rows above keep their
+    // own context menus while bare background reaches the applet options.
+    component BlankAreaMenu: MouseArea {
+        property real filledHeight: 0
+        anchors.left: parent.left
+        anchors.right: parent.right
+        y: Math.min(filledHeight, parent.height)
+        height: Math.max(0, parent.height - y)
+        acceptedButtons: Qt.RightButton
+        onClicked: mouse => {
+            const p = mapToItem(contentRoot, mouse.x, mouse.y);
+            contentRoot.contextMenuRequested(p.x, p.y);
         }
     }
 
-    // Processa locais recentes com locais padrão do usuário
-    function processRecentPlaces() {
-        recentPlacesProcessed.clear();
+    // The original menu is 254 px of application list against 139 px of side panel.
+    readonly property real listColumnRatio: 254 / 393
+    readonly property real sideColumnRatio: 139 / 393
 
-        var defaultPlaces = [
-            { text: "Desktop",   icon: "user-desktop",      command: "xdg-open $(xdg-user-dir DESKTOP)" },
-            { text: "Downloads", icon: "folder-downloads",  command: "xdg-open $(xdg-user-dir DOWNLOAD)" },
-            { text: "Documents", icon: "folder-documents",  command: "xdg-open $(xdg-user-dir DOCUMENTS)" },
-            { text: "Images",    icon: "folder-pictures",   command: "xdg-open $(xdg-user-dir PICTURES)" },
-            { text: "Music",     icon: "folder-music",      command: "xdg-open $(xdg-user-dir MUSIC)" },
-            { text: "Videos",    icon: "folder-videos",     command: "xdg-open $(xdg-user-dir VIDEOS)" }
-        ];
+    SidePanelModels { id: sidePanelModels }
 
-        for (var i = 0; i < defaultPlaces.length; i++) {
-            recentPlacesProcessed.append(defaultPlaces[i]);
-        }
+    // Entries the user kept enabled, keyed by the stable entry name.
+    readonly property var sidePanelVisibility: {
+        const stored = Plasmoid.configuration.sidePanelVisibility;
+        if (!stored || stored === "") return {};
+        try { return JSON.parse(stored); } catch (e) { return {}; }
     }
 
-    // Search field (pode ser ocultado pelo main.qml)
+    function entryVisible(entry) {
+        return typeof contentRoot.sidePanelVisibility[entry.name] !== "undefined";
+    }
+
+    function updateSeparators() {
+        separatorOne.updateVisibility();
+        separatorTwo.updateVisibility();
+    }
+
+    // Search field, hidden by default since main.qml owns the visible one.
     PC3.TextField {
         id: searchField
         width: parent.width * 0.4
@@ -185,13 +82,10 @@ Item {
             topMargin: Kirigami.Units.gridUnit
             horizontalCenter: parent.horizontalCenter
         }
-        placeholderText: i18n("Type here to search ...")
-        font.pointSize: Kirigami.Theme.defaultFont.pointSize
-        visible: false // Por padrão oculto, main.qml controla
+        placeholderText: i18n("Type here to search…")
+        visible: false
 
-        onTextChanged: {
-            contentRoot.searchTextChanged(text);
-        }
+        onTextChanged: contentRoot.searchTextChanged(text)
 
         function backspace() {
             if (!visible) return;
@@ -204,20 +98,8 @@ Item {
             focus = true;
             text = text + newText;
         }
-
-        Kirigami.Icon {
-            source: 'search'
-            anchors {
-                left: parent.left
-                verticalCenter: parent.verticalCenter
-                leftMargin: Kirigami.Units.smallSpacing * 2
-            }
-            height: Kirigami.Units.iconSizes.small
-            width: height
-        }
     }
 
-    // Main Content Area
     Item {
         id: mainArea
         anchors {
@@ -228,99 +110,94 @@ Item {
             bottom: parent.bottom
         }
 
-        // Favorites + Recents Container
+        // ---- Left column, favorites over recently used --------------------
+
         Item {
             id: favoritesContainer
-            visible: showApps === 0 && !searching
-            anchors {
-                top: parent.top
-                left: parent.left
-            }
-            width: parent.width * 0.6
-            height: parent.height
+            // The grids render every row they hold, so without this they paint
+            // straight over the search field and the All Applications button.
+            clip: true
+            visible: contentRoot.showApps === 0 && !contentRoot.searching
+            anchors { top: parent.top; left: parent.left }
+            width: parent.width * contentRoot.listColumnRatio
+            // Ends where its content ends instead of reserving the whole column.
+            height: Math.min(favoritesGrid.height + columnSeparator.height + recentsGrid.height, parent.height)
 
             property alias model: favoritesGrid.externalFavoritesModel
+
             function tryActivate(row, col) {
-                var favoritesRows = Math.ceil(favoritesGrid.count / Math.floor(width / favoritesGrid.cellWidth));
+                const perRow = Math.max(1, Math.floor(width / favoritesGrid.cellWidth));
+                const favoritesRows = Math.ceil(favoritesGrid.count / perRow);
                 if (row < favoritesRows) {
                     favoritesGrid.tryActivate(row, col);
                 } else {
-                    var adjustedRow = row - favoritesRows;
-                    recentsGrid.tryActivate(adjustedRow, col);
+                    recentsGrid.tryActivate(row - favoritesRows, col);
                 }
             }
 
             Column {
+                id: favoritesColumn
                 anchors.fill: parent
                 spacing: 0
 
-                // Favorites Grid
                 Parts.FavoritesRow {
                     id: favoritesGrid
+                    clip: true
+                    activeFocusOnTab: true
                     width: parent.width
-                    height: calculateFavoritesHeight()
+                    // Favorites come first and recents keep at most one guaranteed row,
+                    // so a full pinned list stays whole instead of losing its last entry.
+                    height: {
+                        const available = mainArea.height;
+                        const reserved = (recentsGrid.visible && recentsGrid.count > 0) ? contentRoot.cellHeight : 0;
+                        return Math.max(0, Math.min(contentHeight, available - reserved));
+                    }
                     dragEnabled: true
                     dropEnabled: true
                     cellWidth: width
                     cellHeight: contentRoot.cellHeight
                     iconSize: contentRoot.iconSize
 
-                    function calculateFavoritesHeight() {
-                        var favoritesRows = Math.ceil(count / Math.floor(width / cellWidth));
-                        var recentsRows = Math.ceil(recentsGrid.count / Math.floor(width / cellWidth));
-                        var minRecentsHeight = cellHeight * 2;
-                        var availableHeight = parent.height - 2; // 2px separator
-                        var favHeight = Math.min((favoritesRows * cellHeight), availableHeight - minRecentsHeight);
-                        return favHeight > 0 ? favHeight : 0;
-                    }
-
-                    onCountChanged: Qt.callLater(function() { height = calculateFavoritesHeight(); })
 
                     onKeyNavDown: {
-                        recentsGrid.forceActiveFocus();
-                        recentsGrid.currentIndex = 0;
-                    }
-
-                    onKeyNavUp: {
-                        if (typeof allAppsButton !== "undefined") {
-                            allAppsButton.forceActiveFocus();
+                        if (recentsGrid.visible && recentsGrid.count > 0) {
+                            recentsGrid.forceActiveFocus();
+                            recentsGrid.currentIndex = 0;
                         }
                     }
-
-                    onKeyNavRight: {
-                        sidebar.forceActiveFocus();
-                    }
-
-                    onMenuClosed: {
-                        if (typeof root !== "undefined" && root.toggle) {
-                            root.toggle();
-                        } else if (typeof kicker !== "undefined") {
-                            kicker.expanded = false;
-                        }
-                    }
+                    onKeyNavUp: contentRoot.keyNavUpRequested()
+                    onKeyNavRight: sidebar.focusFirst()
+                    onMenuClosed: contentRoot.closeRequested()
                 }
 
-                // Separator
                 Rectangle {
+                    id: columnSeparator
                     width: parent.width * 0.9
-                    height: 2
-                    color: Kirigami.Theme.textColor || "#eff0f1"
+                    height: visible ? 2 : 0
+                    color: Kirigami.Theme.textColor
                     opacity: 0.3
                     anchors.horizontalCenter: parent.horizontalCenter
-                    visible: favoritesGrid.count > 0
+                    visible: favoritesGrid.count > 0 && recentsGrid.visible && recentsGrid.count > 0
                 }
 
-                // Recents Grid
                 Parts.RecentsRow {
                     id: recentsGrid
+                    clip: true
+                    activeFocusOnTab: true
                     width: parent.width
-                    height: parent.height - favoritesGrid.height - 2
+                    // Snapped to whole rows; a partial row would just be clipped away.
+                    height: {
+                        if (!visible) return 0;
+                        const rest = mainArea.height - favoritesGrid.height - columnSeparator.height;
+                        const rows = Math.floor(rest / contentRoot.cellHeight);
+                        return Math.max(0, Math.min(contentHeight, rows * contentRoot.cellHeight));
+                    }
+                    visible: Plasmoid.configuration.showRecentsView && Plasmoid.configuration.numberRecentApps > 0
                     cellWidth: width
                     cellHeight: contentRoot.cellHeight
                     iconSize: contentRoot.iconSize
                     favoritesModel: favoritesGrid.externalFavoritesModel
 
-                    onCountChanged: Qt.callLater(function() { favoritesGrid.height = favoritesGrid.calculateFavoritesHeight(); })
 
                     onKeyNavUp: {
                         if (favoritesGrid.count > 0) {
@@ -328,101 +205,48 @@ Item {
                             favoritesGrid.currentIndex = favoritesGrid.count - 1;
                         }
                     }
-
-                    onKeyNavDown: {
-                        searchBar.focusSearchField();
-                    }
-
-                    onKeyNavRight: {
-                        sidebar.forceActiveFocus();
-                    }
-
-                    onMenuClosed: {
-                        if (typeof root !== "undefined" && root.toggle) {
-                            root.toggle();
-                        } else if (typeof kicker !== "undefined") {
-                            kicker.expanded = false;
-                        }
-                    }
+                    onKeyNavDown: contentRoot.keyNavDownRequested()
+                    onKeyNavRight: sidebar.focusFirst()
+                    onMenuClosed: contentRoot.closeRequested()
                 }
             }
         }
 
-        // Apps Grid Container
-        Item {
-            id: mainGrids
-            visible: showApps === 1 && !searching
-            anchors {
-                top: parent.top
-                left: parent.left
-            }
-            width: parent.width * 0.6
+        BlankAreaMenu {
+            parent: favoritesContainer
+            filledHeight: favoritesGrid.height + columnSeparator.height + recentsGrid.height
+            visible: favoritesContainer.visible
+        }
+
+        // ---- Left column, All Programs ------------------------------------
+
+        ApplicationsView {
+            id: appsView
+            visible: contentRoot.showApps === 1 && !contentRoot.searching
+            enabled: visible
+            anchors { top: parent.top; left: parent.left }
+            width: parent.width * contentRoot.listColumnRatio
             height: parent.height
+            iconSize: contentRoot.iconSize
+            cellHeight: contentRoot.cellHeight
 
-            Item {
-                id: mainColumn
-                anchors.fill: parent
-                property Item visibleGrid: allAppsGrid
-
-                // Regular apps grid
-                ItemGridView {
-                    id: allAppsGrid
-                    anchors.fill: parent
-                    cellWidth: parent.width
-                    cellHeight: contentRoot.cellHeight
-                    iconSize: contentRoot.iconSize
-                    enabled: parent.visible
-                    z: enabled ? 5 : -1
-
-                    onKeyNavUp: {
-                        if (typeof allAppsButton !== "undefined") {
-                            allAppsButton.forceActiveFocus();
-                        }
-                    }
-
-                    onKeyNavDown: {
-                        if (typeof allAppsButton !== "undefined") {
-                            allAppsButton.forceActiveFocus();
-                        }
-                    }
-
-                    onKeyNavLeft: {
-                        contentRoot.showApps = 0;
-                        if (typeof root !== "undefined") {
-                            root.showApps = 0;
-                        }
-                        if (favoritesGrid.count > 0) {
-                            favoritesGrid.currentIndex = 0;
-                            Qt.callLater(function() {
-                                favoritesGrid.forceActiveFocus();
-                            });
-                        } else if (recentsGrid.count > 0) {
-                            recentsGrid.currentIndex = 0;
-                            Qt.callLater(function() {
-                                recentsGrid.forceActiveFocus();
-                            });
-                        }
-                    }
-
-                    onKeyNavRight: {
-                        sidebar.forceActiveFocus();
-                    }
-                }
+            onExitTop: contentRoot.keyNavUpRequested()
+            onExitBottom: contentRoot.keyNavDownRequested()
+            onExitLeft: {
+                contentRoot.showApps = 0;
+                contentRoot.showAppsChangeRequested(0);
             }
         }
 
-        // Search Results Container
+        // ---- Left column, search results ----------------------------------
+
         Item {
             id: searchContainer
-            visible: searching
-            anchors {
-                top: parent.top
-                left: parent.left
-            }
-            width: parent.width * 0.6
+            visible: contentRoot.searching
+            anchors { top: parent.top; left: parent.left }
+            width: parent.width * contentRoot.listColumnRatio
             height: parent.height
 
-            // Search results grid
             ItemMultiGridView {
                 id: runnerGrid
                 anchors.fill: parent
@@ -434,95 +258,49 @@ Item {
             }
         }
 
-        // Sidebar com navegação - USANDO DADOS REAIS
+        // ---- Right column --------------------------------------------------
+
         FocusScope {
             id: sidebar
             objectName: "sidebar"
-            width: parent.width * 0.35
-            focus: false
+            activeFocusOnTab: true
+            width: parent.width * contentRoot.sideColumnRatio
 
             anchors {
                 top: parent.top
-                topMargin: Kirigami.Units.gridUnit * 4
+                topMargin: Kirigami.Units.gridUnit * 3
                 right: parent.right
                 rightMargin: Kirigami.Units.smallSpacing
                 bottom: parent.bottom
             }
 
-            // Dropdown menu properties
-            property QtObject currentDropdown: null
-
-            // Navigation signals
             signal keyNavUp()
             signal keyNavDown()
             signal keyNavLeft()
 
-            // Keyboard navigation
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Left) {
-                    event.accepted = true;
-                    keyNavLeft();
+            onActiveFocusChanged: if (activeFocus && !sidebarColumn.hasFocusedEntry()) focusFirst()
+
+            function focusFirst() {
+                for (let i = 0; i < sidebarColumn.children.length; i++) {
+                    const child = sidebarColumn.children[i];
+                    if (child && child.visible && child.objectName === "SidePanelItem") {
+                        child.forceActiveFocus();
+                        return;
+                    }
                 }
             }
 
             onKeyNavLeft: {
-                // Navigate back to left column
-                if (favoritesContainer.visible && recentsGrid.visible) {
-                    recentsGrid.forceActiveFocus();
-                    recentsGrid.currentIndex = 0;
-                } else if (mainGrids.visible && allAppsGrid.visible) {
-                    allAppsGrid.forceActiveFocus();
-                    allAppsGrid.currentIndex = 0;
-                }
-            }
-
-            // When sidebar receives focus, focus first child
-            onActiveFocusChanged: {
-                if (activeFocus && sidebarColumn.children.length > 0) {
-                    // Find first SidebarItem in children
-                    for (var i = 0; i < sidebarColumn.children.length; i++) {
-                        var child = sidebarColumn.children[i];
-                        if (child && child.activeFocusOnTab) {
-                            child.forceActiveFocus();
-                            break;
-                        }
+                if (favoritesContainer.visible) {
+                    if (recentsGrid.visible && recentsGrid.count > 0) {
+                        recentsGrid.forceActiveFocus();
+                        recentsGrid.currentIndex = 0;
+                    } else if (favoritesGrid.count > 0) {
+                        favoritesGrid.forceActiveFocus();
+                        favoritesGrid.currentIndex = 0;
                     }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.width: 0
-                radius: 8
-            }
-
-            function showDropdown(menuType, visualParentItem) {
-                // Fechar dropdown anterior se existir
-                if (currentDropdown) {
-                    currentDropdown.close();
-                    currentDropdown.destroy();
-                    currentDropdown = null;
-                }
-
-                try {
-                    var component = null;
-                    if (menuType === "recent") {
-                        component = recentFilesDropdownComponent;
-                    } else if (menuType === "places") {
-                        component = recentPlacesDropdownComponent;
-                    }
-
-                    if (component && visualParentItem) {
-                        currentDropdown = component.createObject(contentRoot);
-                        if (currentDropdown) {
-                            currentDropdown.visualParent = visualParentItem;
-                            currentDropdown.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                            currentDropdown.openRelative();
-                        }
-                    }
-                } catch (e) {
-                    // Handle errors silently
+                } else if (appsView.visible) {
+                    appsView.focusFirst();
                 }
             }
 
@@ -538,442 +316,96 @@ Item {
                 Column {
                     id: sidebarColumn
                     width: sidebarScroll.width
-                    spacing: 4
+                    spacing: 0
 
-                    // SEÇÃO 1: Pastas do usuário
+                    function hasFocusedEntry() {
+                        for (let i = 0; i < children.length; i++) {
+                            if (children[i] && children[i].activeFocus) return true;
+                        }
+                        return false;
+                    }
+
+                    component Entry: SidePanelItem {
+                        // The whole side panel is one tab stop; the arrows walk it.
+                        activeFocusOnTab: false
+                        width: sidebarColumn.width
+                        executable: contentRoot.executable
+                        onNavigateLeft: sidebar.keyNavLeft()
+                        onNavigateBelow: sidebar.keyNavDown()
+                        onNavigateAbove: sidebar.keyNavUp()
+                        onCloseRequested: contentRoot.closeRequested()
+                        onVisibleChanged: contentRoot.updateSeparators()
+                    }
+
                     Repeater {
-                        model: ListModel {
-                            ListElement {
-                                text: "Home"
-                                icon: "user-home"
-                                command: "xdg-open $HOME"
-                                type: "folder"
-                            }
-                            ListElement {
-                                text: "Documents"
-                                icon: "folder-documents"
-                                command: "xdg-open $(xdg-user-dir DOCUMENTS)"
-                                type: "folder"
-                            }
-                            ListElement {
-                                text: "Images"
-                                icon: "folder-pictures"
-                                command: "xdg-open $(xdg-user-dir PICTURES)"
-                                type: "folder"
-                            }
-                            ListElement {
-                                text: "Musics"
-                                icon: "folder-music"
-                                command: "xdg-open $(xdg-user-dir MUSIC)"
-                                type: "folder"
-                            }
-                            ListElement {
-                                text: "Videos"
-                                icon: "folder-videos"
-                                command: "xdg-open $(xdg-user-dir VIDEOS)"
-                                type: "folder"
-                            }
-                            ListElement {
-                                text: "Downloads"
-                                icon: "folder-downloads"
-                                command: "xdg-open $(xdg-user-dir DOWNLOAD)"
-                                type: "folder"
-                            }
-                        }
-
-                        delegate: SidebarItem {
-                            text: model.text
-                            icon: model.icon
-                            onClicked: {
-                                if (contentRoot.executable) {
-                                    contentRoot.executable.exec(model.command);
-                                }
-                            }
+                        model: sidePanelModels.firstCategory.length
+                        delegate: Entry {
+                            required property int index
+                            readonly property var entry: sidePanelModels.firstCategory[index]
+                            visible: contentRoot.entryVisible(entry)
+                            itemText: entry.itemText
+                            description: entry.description
+                            itemIcon: entry.itemIcon
+                            itemIconFallback: entry.itemIconFallback
+                            executableString: entry.executableString
+                            executeProgram: entry.executeProgram
+                            menuModel: entry.menuModel
                         }
                     }
 
-                    // Separador 1
-                    Rectangle {
-                        width: parent.width * 0.8
-                        height: 1
-                        color: Kirigami.Theme.separatorColor || "#3c4043"
-                        opacity: 0.5
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.margins: 8
+                    SidePanelSeparator {
+                        id: separatorOne
+                        width: sidebarColumn.width
                     }
 
-                    // SEÇÃO 2: Menus com dropdown - DADOS REAIS
-                    SidebarItem {
-                        id: arquivosRecentesItem
-                        text: "Recent Files (" + recentFilesProcessed.count + ")"
-                        icon: "document-open-recent"
-                        hasDropdown: true
-                        onClicked: sidebar.showDropdown("recent", arquivosRecentesItem)
-                    }
-
-                    SidebarItem {
-                        id: locaisRecentesItem
-                        text: "Recent Places (" + recentPlacesProcessed.count + ")"
-                        icon: "folder-recent"
-                        hasDropdown: true
-                        onClicked: sidebar.showDropdown("places", locaisRecentesItem)
-                    }
-
-                    SidebarItem {
-                        text: "Network"
-                        icon: "network-workgroup"
-                        onClicked: {
-                            if (contentRoot.executable) {
-                                contentRoot.executable.exec("dolphin network:/");
-                            }
+                    Repeater {
+                        model: sidePanelModels.secondCategory.length
+                        delegate: Entry {
+                            required property int index
+                            readonly property var entry: sidePanelModels.secondCategory[index]
+                            visible: contentRoot.entryVisible(entry)
+                            itemText: entry.itemText
+                            description: entry.description
+                            itemIcon: entry.itemIcon
+                            itemIconFallback: entry.itemIconFallback
+                            executableString: entry.executableString
+                            executeProgram: entry.executeProgram
+                            menuModel: entry.menuModel
                         }
                     }
 
-                    // Separador 2
-                    Rectangle {
-                        width: parent.width * 0.8
-                        height: 1
-                        color: Kirigami.Theme.separatorColor || "#3c4043"
-                        opacity: 0.5
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.margins: 8
+                    SidePanelSeparator {
+                        id: separatorTwo
+                        width: sidebarColumn.width
                     }
 
-                    // SEÇÃO 3: Ferramentas do sistema
-                    SidebarItem {
-                        text: "Settings"
-                        icon: "preferences-system"
-                        onClicked: {
-                            if (contentRoot.executable) {
-                                contentRoot.executable.exec("systemsettings");
-                            }
-                        }
-                    }
-
-                    SidebarItem {
-                        text: "Run"
-                        icon: "system-run"
-                        onClicked: {
-                            if (contentRoot.executable) {
-                                contentRoot.executable.exec("krunner");
-                            }
+                    Repeater {
+                        model: sidePanelModels.thirdCategory.length
+                        delegate: Entry {
+                            required property int index
+                            readonly property var entry: sidePanelModels.thirdCategory[index]
+                            visible: contentRoot.entryVisible(entry)
+                            itemText: entry.itemText
+                            description: entry.description
+                            itemIcon: entry.itemIcon
+                            itemIconFallback: entry.itemIconFallback
+                            executableString: entry.executableString
+                            executeProgram: entry.executeProgram
+                            menuModel: entry.menuModel
                         }
                     }
                 }
             }
-        }
-    }
 
-    // Componente para items da sidebar
-    component SidebarItem: Rectangle {
-        id: sidebarItem
-        width: parent.width
-        height: 36
-        radius: 4
-        color: (activeFocus || mouseArea.containsMouse) ? (Kirigami.Theme.hoverColor || "#93cee9") : "transparent"
-
-        property string text: ""
-        property string icon: ""
-        property bool hasDropdown: false
-
-        signal clicked()
-
-        // Make focusable
-        focus: true
-        activeFocusOnTab: true
-
-        // Keyboard navigation
-        Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                event.accepted = true;
-                sidebarItem.clicked();
-            } else if (event.key === Qt.Key_Right && sidebarItem.hasDropdown) {
-                event.accepted = true;
-                sidebarItem.clicked();
-            } else if (event.key === Qt.Key_Left) {
-                event.accepted = true;
-                sidebar.keyNavLeft();
-            } else if (event.key === Qt.Key_Down) {
-                event.accepted = true;
-                var myIndex = -1;
-                for (var i = 0; i < parent.children.length; i++) {
-                    if (parent.children[i] === sidebarItem) {
-                        myIndex = i;
-                        break;
-                    }
-                }
-                var isLastFocusable = true;
-                for (var k = myIndex + 1; k < parent.children.length; k++) {
-                    if (parent.children[k] && parent.children[k].activeFocusOnTab) {
-                        isLastFocusable = false;
-                        break;
-                    }
-                }
-                if (isLastFocusable) {
-                    sidebar.keyNavDown();
-                } else if (myIndex >= 0 && myIndex < parent.children.length - 1) {
-                    for (var j = myIndex + 1; j < parent.children.length; j++) {
-                        var nextChild = parent.children[j];
-                        if (nextChild && nextChild.activeFocusOnTab) {
-                            nextChild.forceActiveFocus();
-                            break;
-                        }
-                    }
-                }
-            } else if (event.key === Qt.Key_Up) {
-                event.accepted = true;
-                var myIndex = -1;
-                for (var i = 0; i < parent.children.length; i++) {
-                    if (parent.children[i] === sidebarItem) {
-                        myIndex = i;
-                        break;
-                    }
-                }
-                var isFirstFocusable = true;
-                for (var k = 0; k < myIndex; k++) {
-                    if (parent.children[k] && parent.children[k].activeFocusOnTab) {
-                        isFirstFocusable = false;
-                        break;
-                    }
-                }
-                if (isFirstFocusable) {
-                    sidebar.keyNavUp();
-                } else if (myIndex > 0) {
-                    for (var j = myIndex - 1; j >= 0; j--) {
-                        var prevChild = parent.children[j];
-                        if (prevChild && prevChild.activeFocusOnTab) {
-                            prevChild.forceActiveFocus();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        Row {
-            anchors.fill: parent
-            anchors.leftMargin: 0
-            anchors.rightMargin: 8
-            spacing: 12
-
-            Kirigami.Icon {
-                id: itemIcon
-                width: 20
-                height: 20
-                anchors.verticalCenter: parent.verticalCenter
-                source: sidebarItem.icon
-                color: Kirigami.Theme.textColor || "#eff0f1"
-            }
-
-            PC3.Label {
-                id: itemLabel
-                anchors.verticalCenter: parent.verticalCenter
-                text: sidebarItem.text
-                color: Kirigami.Theme.textColor || "#eff0f1"
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize * 0.9
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-            }
-
-            // Seta para dropdown
-            Kirigami.Icon {
-                width: 16
-                height: 16
-                anchors.verticalCenter: parent.verticalCenter
-                source: "arrow-right"
-                color: Kirigami.Theme.textColor || "#eff0f1"
-                opacity: 0.7
-                visible: sidebarItem.hasDropdown
-            }
-        }
-
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-
-            onClicked: sidebarItem.clicked()
-        }
-
-        Behavior on color {
-            ColorAnimation { duration: 150 }
-        }
-    }
-
-    // Componente para dropdown de arquivos recentes - DADOS REAIS
-    Component {
-        id: recentFilesDropdownComponent
-
-        PlasmaExtras.Menu {
-            id: recentMenu
-
-            Component.onCompleted: {
-                for (var i = 0; i < recentFilesProcessed.count; i++) {
-                    var item = recentFilesProcessed.get(i);
-
-                    var menuItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem {}
-                    `, recentMenu);
-
-                    menuItem.text = item.text;
-                    menuItem.icon = item.icon;
-
-                    // Criar closure para capturar os dados
-                    (function(itemData) {
-                        menuItem.clicked.connect(function() {
-                            if (itemData.action && typeof itemData.action.trigger === "function") {
-                                itemData.action.trigger();
-                            } else if (contentRoot.executable && itemData.url) {
-                                contentRoot.executable.exec(itemData.command);
-                            }
-
-                            if (typeof root !== "undefined" && root.toggle) {
-                                root.toggle();
-                            } else if (typeof kicker !== "undefined") {
-                                kicker.expanded = false;
-                            }
-                        });
-                    })(item);
-
-                    recentMenu.addMenuItem(menuItem);
-                }
-
-                // Adicionar separador se há itens
-                if (recentFilesProcessed.count > 0) {
-                    var separatorItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem { separator: true }
-                    `, recentMenu);
-                    recentMenu.addMenuItem(separatorItem);
-                }
-
-                // Adicionar "Limpar Lista" no final
-                var clearItem = Qt.createQmlObject(`
-                    import org.kde.plasma.extras 2.0 as PlasmaExtras
-                    PlasmaExtras.MenuItem {}
-                `, recentMenu);
-                clearItem.text = "Limpar Lista";
-                clearItem.icon = "edit-clear-history";
-                clearItem.clicked.connect(function() {
-                    if (contentRoot.executable) {
-                        contentRoot.executable.exec("rm -f ~/.local/share/recently-used.xbel");
-                    }
-                    processRecentFiles();
-                });
-                recentMenu.addMenuItem(clearItem);
-
-                // Adicionar mensagem se não há arquivos
-                if (recentFilesProcessed.count === 0) {
-                    var noItemsItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem { enabled: false }
-                    `, recentMenu);
-                    noItemsItem.text = "Nenhum arquivo recente";
-                    recentMenu.addMenuItem(noItemsItem);
-                }
+            BlankAreaMenu {
+                filledHeight: sidebarScroll.y + sidebarColumn.height
             }
         }
     }
 
-    // Componente para dropdown de locais recentes - DADOS REAIS
-    Component {
-        id: recentPlacesDropdownComponent
+    signal keyNavUpRequested()
+    signal keyNavDownRequested()
+    signal showAppsChangeRequested(int value)
 
-        PlasmaExtras.Menu {
-            id: placesMenu
-
-            Component.onCompleted: {
-                for (var i = 0; i < recentPlacesProcessed.count; i++) {
-                    var item = recentPlacesProcessed.get(i);
-
-                    var menuItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem {}
-                    `, placesMenu);
-
-                    menuItem.text = item.text;
-                    menuItem.icon = item.icon;
-
-                    // Criar closure para capturar os dados
-                    (function(itemData) {
-                        menuItem.clicked.connect(function() {
-                            if (itemData.action && typeof itemData.action.trigger === "function") {
-                                itemData.action.trigger();
-                            } else if (contentRoot.executable) {
-                                contentRoot.executable.exec(itemData.command);
-                            }
-
-                            if (typeof root !== "undefined" && root.toggle) {
-                                root.toggle();
-                            } else if (typeof kicker !== "undefined") {
-                                kicker.expanded = false;
-                            }
-                        });
-                    })(item);
-
-                    placesMenu.addMenuItem(menuItem);
-                }
-
-                // Adicionar separador se há itens
-                if (recentPlacesProcessed.count > 0) {
-                    var separatorItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem { separator: true }
-                    `, placesMenu);
-                    placesMenu.addMenuItem(separatorItem);
-                }
-
-                // Adicionar "Limpar Lista" no final
-                var clearItem = Qt.createQmlObject(`
-                    import org.kde.plasma.extras 2.0 as PlasmaExtras
-                    PlasmaExtras.MenuItem {}
-                `, placesMenu);
-                clearItem.text = "Limpar Lista";
-                clearItem.icon = "edit-clear-history";
-                clearItem.clicked.connect(function() {
-                    processRecentPlaces();
-                });
-                placesMenu.addMenuItem(clearItem);
-
-                // Adicionar mensagem se não há locais
-                if (recentPlacesProcessed.count === 0) {
-                    var noItemsItem = Qt.createQmlObject(`
-                        import org.kde.plasma.extras 2.0 as PlasmaExtras
-                        PlasmaExtras.MenuItem { enabled: false }
-                    `, placesMenu);
-                    noItemsItem.text = "Nenhum local recente";
-                    placesMenu.addMenuItem(noItemsItem);
-                }
-            }
-        }
-    }
-
-    // Conectar mudanças nos modelos para reprocessar dados
-    Connections {
-        target: recentFilesModel
-        function onCountChanged() {
-            Qt.callLater(processRecentFiles);
-        }
-        function onDataChanged() {
-            Qt.callLater(processRecentFiles);
-        }
-    }
-
-    Connections {
-        target: frequentAppsModel
-        function onCountChanged() {
-            Qt.callLater(processRecentPlaces);
-        }
-        function onDataChanged() {
-            Qt.callLater(processRecentPlaces);
-        }
-    }
-
-    Component.onCompleted: {
-        // Processar dados iniciais
-        Qt.callLater(processRecentFiles);
-        Qt.callLater(processRecentPlaces);
-    }
+    Component.onCompleted: Qt.callLater(updateSeparators)
 }

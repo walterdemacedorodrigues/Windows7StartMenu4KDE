@@ -1,37 +1,38 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-FileCopyrightText: 2023 WackyIdeas <wackyideas@disroot.org>
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick
+import QtQuick.Window
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
-import org.kde.plasma.components as PlasmaComponents3
+import org.kde.plasma.components 3.0 as PlasmaComponents3
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.private.kicker 0.1 as Kicker
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
 import org.kde.ksvg 1.0 as KSvg
 import org.kde.coreaddons 1.0 as KCoreAddons
-import Qt5Compat.GraphicalEffects
+import org.kde.kitemmodels as KItemModels
 import "parts" as Parts
 
 PlasmoidItem {
     id: kicker
 
     signal reset
+    signal modelsRefreshed()
 
     property Item dragSource: null
 
     clip: false
 
-    function action_menuedit() {
-        processRunner.runMenuEditor();
-    }
-
     property QtObject globalFavorites: rootModel ? rootModel.favoritesModel : null
     property QtObject systemFavorites: rootModel ? rootModel.systemFavoritesModel : null
+
+    readonly property bool hierarchical: Plasmoid.configuration.hierarchicalAllPrograms
 
     KCoreAddons.KUser {
         id: kuser
@@ -46,23 +47,23 @@ PlasmoidItem {
     }
 
     compactRepresentation: Item {
-        Kirigami.Icon {
-            id: buttonIcon
-            anchors.fill: parent
-            source: Plasmoid.configuration.useCustomButtonImage ?
-                   Plasmoid.configuration.customButtonImage :
-                   Plasmoid.configuration.icon
-            active: mouseArea.containsMouse
-            smooth: true
+        Layout.minimumWidth: orb.implicitWidth
+        Layout.minimumHeight: orb.implicitHeight
+
+        OrbButton {
+            id: orb
+            anchors.centerIn: parent
+            width: Math.min(parent.width, implicitWidth > 0 ? implicitWidth : parent.width)
+            height: Math.min(parent.height, implicitHeight > 0 ? implicitHeight : parent.height)
+            hovered: mouseArea.containsMouse
+            pressed: kicker.expanded
         }
 
         MouseArea {
             id: mouseArea
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: {
-                kicker.expanded = !kicker.expanded;
-            }
+            onClicked: kicker.expanded = !kicker.expanded
         }
     }
 
@@ -79,19 +80,44 @@ PlasmoidItem {
         property bool systemActionInProgress: false
         property string currentAction: ""
 
-        function toggle() {
-            kicker.expanded = false;
+        // Right clicking empty space inside the popup reached nothing, so the
+        // applet options were only available from the panel button.
+        MouseArea {
+            anchors.fill: parent
+            z: -1
+            acceptedButtons: Qt.RightButton
+            onClicked: mouse => appletContextMenu.popup(root, mouse.x, mouse.y)
+        }
+
+        PlasmaComponents3.Menu {
+            id: appletContextMenu
+
+            PlasmaComponents3.MenuItem {
+                text: i18n("Edit Applications…")
+                icon.name: "kmenuedit"
+                enabled: Plasmoid.immutability !== PlasmaCore.Types.SystemImmutable
+                onTriggered: processRunner.runMenuEditor()
+            }
+
+            PlasmaComponents3.MenuSeparator {}
+
+            PlasmaComponents3.MenuItem {
+                text: i18n("Configure Start Menu…")
+                icon.name: "configure"
+                enabled: Plasmoid.immutability === PlasmaCore.Types.Mutable
+                onTriggered: {
+                    const action = Plasmoid.internalAction("configure");
+                    if (action) action.trigger();
+                }
+            }
         }
 
         function executeSystemAction(command, actionType) {
-            if (systemActionInProgress) {
-                return;
-            }
-
+            if (systemActionInProgress) return;
             systemActionInProgress = true;
             currentAction = actionType;
 
-            var executable = kicker.executable;
+            const executable = kicker.executable;
             if (executable) {
                 executable.exited.connect(onSystemActionCompleted);
                 executable.exec(command);
@@ -99,57 +125,51 @@ PlasmoidItem {
                 systemActionInProgress = false;
                 currentAction = "";
             }
-
             root.toggle();
         }
 
         function onSystemActionCompleted(cmd, exitCode, exitStatus, stdout, stderr) {
-            var executable = kicker.executable;
-            if (executable) {
-                executable.exited.disconnect(onSystemActionCompleted);
-            }
-
-            if (exitCode !== 0) {
-                // Fallbacks para ações que podem falhar
-                if (currentAction === "logout" && exitCode !== 0) {
-                    if (executable) {
-                        executable.exec("qdbus org.kde.ksmserver /KSMServer logout 1 0 0");
-                    }
-                } else if (currentAction === "suspend" && exitCode !== 0) {
-                    if (executable) {
-                        executable.exec("dbus-send --system --print-reply --dest=org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.UPower.Suspend");
-                    }
-                } else if (currentAction === "lock" && exitCode !== 0) {
-                    if (executable) {
-                        executable.exec("qdbus org.kde.screensaver /ScreenSaver Lock");
-                    }
-                }
-            }
-
+            const executable = kicker.executable;
+            if (executable) executable.exited.disconnect(onSystemActionCompleted);
             systemActionInProgress = false;
             currentAction = "";
         }
 
-        onSearchingChanged: {
-            if (typeof menuContent !== "undefined" && menuContent) {
-                menuContent.searching = searching;
+        function toggle() {
+            kicker.expanded = false;
+        }
+
+        function setShowApps(value) {
+            showApps = value;
+            menuContent.showApps = value;
+            if (value === 1) {
+                Qt.callLater(() => menuContent.appsView.focusFirst());
+            } else if (menuContent.favoritesGrid.count > 0) {
+                Qt.callLater(() => {
+                    menuContent.favoritesGrid.currentIndex = 0;
+                    menuContent.favoritesGrid.forceActiveFocus();
+                });
             }
         }
 
         clip: false
 
-        // Wrapper item for ProfilePic with highlight
+        readonly property int avatarSize: Kirigami.Units.iconSizes.huge
+
+        // Wayland forbids a client from placing its own window, so the avatar
+        // cannot live in a separate window overhanging the popup the way the
+        // original does. It hugs the inner top right corner instead.
         Item {
             id: profilePicWrapper
-            width: Kirigami.Units.gridUnit * 3.5
-            height: Kirigami.Units.gridUnit * 3.5
+            width: root.avatarSize
+            height: root.avatarSize
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: Kirigami.Units.smallSpacing
+            anchors.rightMargin: Kirigami.Units.smallSpacing
+            anchors.topMargin: Kirigami.Units.smallSpacing
             z: 99999
-            visible: kicker.expanded
+            visible: kicker.expanded && !root.searching && Plasmoid.configuration.viewUser
 
-            // Highlight background - visible when ProfilePic has keyboard focus
             PlasmaExtras.Highlight {
                 anchors.fill: parent
                 visible: floatingAvatar.activeFocus
@@ -165,34 +185,15 @@ PlasmoidItem {
                 isExpanded: kicker.expanded
                 executable: kicker.executable
 
-                onClicked: {
-                    root.toggle();
-                }
-
-                onKeyNavDown: {
-                    if (menuContent && menuContent.sidebar) {
-                        menuContent.sidebar.forceActiveFocus();
-                    }
-                }
-
-                onKeyNavUp: {
-                    if (powerButtons) {
-                        powerButtons.forceActiveFocus();
-                    }
-                }
-
+                onClicked: root.toggle()
+                onKeyNavDown: menuContent.sidebar.focusFirst()
+                onKeyNavUp: powerButtons.forceActiveFocus()
                 onKeyNavLeft: {
-                    if (menuContent) {
-                        if (menuContent.favoritesComponent && menuContent.favoritesComponent.visible) {
-                            var recentsGrid = menuContent.favoritesComponent.children[0].children[2];
-                            if (recentsGrid && recentsGrid.visible) {
-                                recentsGrid.forceActiveFocus();
-                                recentsGrid.currentIndex = 0;
-                            }
-                        } else if (menuContent.allAppsGrid && menuContent.allAppsGrid.visible) {
-                            menuContent.allAppsGrid.forceActiveFocus();
-                            menuContent.allAppsGrid.currentIndex = 0;
-                        }
+                    if (root.showApps === 1) {
+                        menuContent.appsView.focusFirst();
+                    } else if (menuContent.recentsGrid.visible && menuContent.recentsGrid.count > 0) {
+                        menuContent.recentsGrid.forceActiveFocus();
+                        menuContent.recentsGrid.currentIndex = 0;
                     }
                 }
             }
@@ -203,7 +204,6 @@ PlasmoidItem {
             spacing: 0
 
             Item {
-                id: topSpacer
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 1.5
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 1.5
@@ -211,7 +211,6 @@ PlasmoidItem {
             }
 
             Item {
-                id: contentArea
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
@@ -220,50 +219,39 @@ PlasmoidItem {
                     anchors.fill: parent
                     showApps: root.showApps
                     searching: root.searching
-                    cellHeight: 48
+                    // 44 px matches the reference row, and it is what lets two pinned
+                    // entries plus ten most used ones fit without clipping.
+                    cellHeight: 44
                     iconSize: 32
                     executable: kicker.executable
 
-                    function onSearchTextChanged(text) {
+                    onSearchTextChanged: text => {
                         root.searching = (text !== "");
-
-                        if (typeof runnerModel !== "undefined") {
-                            runnerModel.query = text;
-                        }
+                        runnerModel.query = text;
                     }
+                    onCloseRequested: root.toggle()
+                    onContextMenuRequested: (x, y) => {
+                        const p = menuContent.mapToItem(root, x, y);
+                        appletContextMenu.popup(root, p.x, p.y);
+                    }
+                    onKeyNavUpRequested: allAppsButton.forceActiveFocus()
+                    onKeyNavDownRequested: searchBar.focusSearchField()
+                    onShowAppsChangeRequested: value => root.setShowApps(value)
+                }
 
-                    Component.onCompleted: {
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.searchField) {
-                            menuContent.searchField.visible = false;
-                        }
-
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.favoritesComponent && kicker.globalFavorites) {
-                            menuContent.favoritesComponent.model = kicker.globalFavorites;
-                        }
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.allAppsGrid && rootModel) {
-                            menuContent.allAppsGrid.model = rootModel.modelForRow(0);
-                        }
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.runnerGrid && runnerModel) {
-                            menuContent.runnerGrid.model = runnerModel;
-                        }
-
-                        if (typeof menuContent !== "undefined" && menuContent && menuContent.searchTextChanged) {
-                            menuContent.searchTextChanged.connect(menuContent.onSearchTextChanged);
-                        }
+                Connections {
+                    target: kicker
+                    function onSearchResultsReady() {
+                        menuContent.runnerGrid.model = null;
+                        menuContent.runnerGrid.model = runnerModel;
                     }
                 }
 
-                // Sidebar navigation connections
                 Connections {
                     target: menuContent.sidebar
 
-                    function onKeyNavUp() {
-                        floatingAvatar.forceActiveFocus();
-                    }
-
-                    function onKeyNavDown() {
-                        powerButtons.forceActiveFocus();
-                    }
+                    function onKeyNavUp() { floatingAvatar.forceActiveFocus(); }
+                    function onKeyNavDown() { powerButtons.forceActiveFocus(); }
                 }
             }
 
@@ -274,49 +262,49 @@ PlasmoidItem {
                 runnerModelRef: runnerModel
                 currentShowApps: root.showApps
 
-                onSearchTextChanged: (text) => {
-                    root.searching = (text !== "");
+                onSearchTextChanged: text => root.searching = (text !== "")
+                onContextMenuRequested: (x, y) => {
+                    const p = searchBar.mapToItem(root, x, y);
+                    appletContextMenu.popup(root, p.x, p.y);
                 }
-
-                onEscapePressed: {
-                    root.toggle();
-                }
-
+                onEscapePressed: root.toggle()
+                onKeyNavDown: allAppsButton.forceActiveFocus()
                 onNavigateToResults: {
-                    if (root.searching && typeof menuContent !== "undefined" && menuContent && menuContent.runnerGrid) {
-                        if (menuContent.runnerGrid.tryActivate) {
-                            menuContent.runnerGrid.tryActivate(0, 0);
-                        }
-                    } else if (root.showApps === 0 && typeof menuContent !== "undefined" && menuContent && menuContent.favoritesComponent) {
-                        if (menuContent.favoritesComponent.tryActivate) {
-                            menuContent.favoritesComponent.tryActivate(0, 0);
-                        }
-                    } else if (typeof menuContent !== "undefined" && menuContent && menuContent.allAppsGrid) {
-                        if (menuContent.allAppsGrid.tryActivate) {
-                            menuContent.allAppsGrid.tryActivate(0, 0);
-                        }
+                    if (root.searching) {
+                        if (menuContent.runnerGrid.tryActivate) menuContent.runnerGrid.tryActivate(0, 0);
+                    } else if (root.showApps === 1) {
+                        menuContent.appsView.focusFirst();
+                    } else if (menuContent.favoritesComponent.tryActivate) {
+                        menuContent.favoritesComponent.tryActivate(0, 0);
                     }
                 }
             }
 
             Rectangle {
-                id: bottomBar
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 2
                 Layout.maximumHeight: Kirigami.Units.gridUnit * 2
                 color: "transparent"
 
+                MouseArea {
+                    anchors.fill: parent
+                    z: -1
+                    acceptedButtons: Qt.RightButton
+                    onClicked: mouse => {
+                        const p = mapToItem(root, mouse.x, mouse.y);
+                        appletContextMenu.popup(root, p.x, p.y);
+                    }
+                }
+
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: Kirigami.Units.smallSpacing
 
-                    // Wrapper item for button with highlight
                     Item {
                         Layout.preferredWidth: parent.width * 0.6
                         Layout.fillHeight: true
 
-                        // Highlight background - visible when button has keyboard focus
                         PlasmaExtras.Highlight {
                             anchors.fill: parent
                             visible: allAppsButton.activeFocus
@@ -324,132 +312,71 @@ PlasmoidItem {
                             pressed: allAppsButton.pressed
                         }
 
+                        // Glows while an application the user has not opened yet
+                        // is sitting somewhere in the tree.
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Kirigami.Units.smallSpacing
+                            color: Kirigami.Theme.positiveTextColor
+                            opacity: 0.18
+                            visible: Plasmoid.configuration.highlightNewApps
+                                     && newlyInstalledApps.count > 0
+                                     && root.showApps === 0
+                        }
+
                         PlasmaComponents3.Button {
                             id: allAppsButton
                             anchors.fill: parent
                             text: root.showApps === 0 ? i18n("All Applications") : i18n("Favorites")
                             icon.name: root.showApps === 0 ? "applications-all" : "bookmarks"
-
                             activeFocusOnTab: true
-
-                            // Make background transparent so highlight shows through
                             background: Item {}
 
                             Keys.onPressed: (event) => {
-                            if (event.key === Qt.Key_Up) {
-                                event.accepted = true;
-                                if (root.showApps === 0) {
-                                    searchBar.focusSearchField();
-                                } else {
-                                    if (menuContent.allAppsGrid) {
-                                        menuContent.allAppsGrid.currentIndex = menuContent.allAppsGrid.count - 1;
-                                        menuContent.allAppsGrid.forceActiveFocus();
+                                switch (event.key) {
+                                case Qt.Key_Up:
+                                    event.accepted = true;
+                                    if (root.showApps === 0) {
+                                        searchBar.focusSearchField();
+                                    } else {
+                                        menuContent.appsView.focusFirst();
                                     }
-                                }
-                                return;
-                            }
-
-                            if (event.key === Qt.Key_Down) {
-                                event.accepted = true;
-                                if (root.showApps === 0) {
-                                    if (menuContent.favoritesComponent) {
-                                        var favGrid = menuContent.favoritesComponent.children[0].children[0];
-                                        if (favGrid) {
-                                            favGrid.currentIndex = 0;
-                                            favGrid.forceActiveFocus();
-                                        }
-                                    }
-                                } else {
-                                    if (menuContent.allAppsGrid) {
-                                        menuContent.allAppsGrid.currentIndex = 0;
-                                        menuContent.allAppsGrid.forceActiveFocus();
-                                    }
-                                }
-                                return;
-                            }
-
-                            if (event.key === Qt.Key_Right) {
-                                event.accepted = true;
-                                if (root.showApps === 0) {
-                                    root.showApps = 1;
-                                    if (menuContent) {
-                                        menuContent.showApps = 1;
-                                    }
-                                    if (menuContent.allAppsGrid && rootModel) {
-                                        var appModel = rootModel.modelForRow(0);
-                                        if (appModel) {
-                                            menuContent.allAppsGrid.model = appModel;
-                                        }
-                                    }
-                                    Qt.callLater(function() {
-                                        menuContent.allAppsGrid.currentIndex = 0;
-                                        menuContent.allAppsGrid.forceActiveFocus();
-                                    });
-                                }
-                                return;
-                            }
-
-                            if (event.key === Qt.Key_Left) {
-                                event.accepted = true;
-                                if (root.showApps === 1) {
-                                    root.showApps = 0;
-                                    if (menuContent) {
-                                        menuContent.showApps = 0;
-                                    }
-                                    if (menuContent.favoritesComponent) {
-                                        var favGrid = menuContent.favoritesComponent.children[0].children[0];
-                                        if (favGrid && favGrid.count > 0) {
-                                            favGrid.currentIndex = 0;
-                                            Qt.callLater(function() {
-                                                favGrid.forceActiveFocus();
-                                            });
-                                        }
-                                    }
-                                }
-                                return;
-                            }
-
-                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
-                                event.accepted = true;
-                                allAppsButton.clicked();
-                                return;
-                            }
-                        }
-
-                        onClicked: {
-                            var newValue = root.showApps === 0 ? 1 : 0;
-
-                            root.showApps = newValue;
-                            if (menuContent) {
-                                menuContent.showApps = newValue;
-                            }
-
-                            if (newValue === 1) {
-                                if (menuContent.allAppsGrid && rootModel) {
-                                    var appModel = rootModel.modelForRow(0);
-                                    if (appModel) {
-                                        menuContent.allAppsGrid.model = appModel;
-                                    }
-                                }
-                            } else {
-                                if (menuContent.favoritesComponent && kicker.globalFavorites) {
-                                    menuContent.favoritesComponent.model = kicker.globalFavorites;
+                                    break;
+                                case Qt.Key_Down:
+                                    // This is the bottom row, so down continues to
+                                    // the power button instead of jumping back up.
+                                    event.accepted = true;
+                                    powerButtons.forceActiveFocus();
+                                    break;
+                                case Qt.Key_Right:
+                                    event.accepted = true;
+                                    powerButtons.forceActiveFocus();
+                                    break;
+                                case Qt.Key_Left:
+                                    event.accepted = true;
+                                    if (root.showApps === 1) root.setShowApps(0);
+                                    break;
+                                case Qt.Key_Return:
+                                case Qt.Key_Enter:
+                                case Qt.Key_Space:
+                                    event.accepted = true;
+                                    allAppsButton.clicked();
+                                    break;
                                 }
                             }
+
+                            onClicked: root.setShowApps(root.showApps === 0 ? 1 : 0)
                         }
                     }
-                    } // End of wrapper Item
 
                     Item {
                         Layout.fillWidth: true
                     }
 
-                    // Wrapper item for PowerButtons with highlight
                     Item {
                         Layout.preferredWidth: parent.width * 0.3
                         Layout.fillHeight: true
 
-                        // Highlight background - visible when PowerButtons has keyboard focus
                         PlasmaExtras.Highlight {
                             anchors.fill: parent
                             visible: powerButtons.activeFocus
@@ -462,24 +389,11 @@ PlasmoidItem {
                             anchors.fill: parent
 
                             actionInProgress: root.systemActionInProgress
-
-                            onExecuteAction: (command, actionType) => {
-                                root.executeSystemAction(command, actionType);
-                            }
-
-                            onKeyNavUp: {
-                                if (menuContent && menuContent.sidebar) {
-                                    menuContent.sidebar.forceActiveFocus();
-                                }
-                            }
-
-                            onKeyNavDown: {
-                                floatingAvatar.forceActiveFocus();
-                            }
-
-                            onKeyNavLeft: {
-                                allAppsButton.forceActiveFocus();
-                            }
+                            onExecuteAction: (command, actionType) => root.executeSystemAction(command, actionType)
+                            onCloseRequested: root.toggle()
+                            onKeyNavUp: searchBar.focusSearchField()
+                            onKeyNavDown: menuContent.sidebar.focusFirst()
+                            onKeyNavLeft: allAppsButton.forceActiveFocus()
                         }
                     }
                 }
@@ -489,39 +403,25 @@ PlasmoidItem {
         Keys.onPressed: (event) => {
             if (event.key === Qt.Key_Escape) {
                 event.accepted = true;
-                if (root.searching) {
-                    searchBar.clear();
-                } else {
-                    kicker.expanded = false;
-                }
+                if (root.searching) searchBar.clear(); else kicker.expanded = false;
                 return;
             }
-
-            // Navigate Up to All Applications button
             if (event.key === Qt.Key_Up) {
                 event.accepted = true;
                 allAppsButton.forceActiveFocus();
                 return;
             }
-
-            // Navigate Down to Recents
             if (event.key === Qt.Key_Down) {
-                if (menuContent && menuContent.favoritesComponent) {
-                    var recentsGrid = menuContent.favoritesComponent.children[0].children[2]; // Column > Recents
-                    if (recentsGrid && recentsGrid.visible) {
-                        event.accepted = true;
-                        recentsGrid.forceActiveFocus();
-                        recentsGrid.currentIndex = 0;
-                        return;
-                    }
+                if (root.showApps === 1) {
+                    event.accepted = true;
+                    menuContent.appsView.focusFirst();
+                } else if (menuContent.recentsGrid.visible && menuContent.recentsGrid.count > 0) {
+                    event.accepted = true;
+                    menuContent.recentsGrid.forceActiveFocus();
+                    menuContent.recentsGrid.currentIndex = 0;
                 }
+                return;
             }
-
-            // Navigate Left/Right between columns
-            if (event.key === Qt.Key_Left || event.key === Qt.Key_Right) {
-                // This will be handled by individual grids via keyNavLeft/keyNavRight signals
-            }
-
             if (event.key === Qt.Key_Backspace) {
                 event.accepted = true;
                 searchBar.backspace();
@@ -533,111 +433,135 @@ PlasmoidItem {
         }
 
         focus: true
+
+        Connections {
+            target: kicker
+            // Without an explicit entry point the popup opens with focus on a
+            // container that handles no keys, so the arrows did nothing at all.
+            function onExpandedChanged() {
+                if (kicker.expanded) Qt.callLater(() => searchBar.focusSearchField());
+            }
+            function onModelsRefreshed() {
+                menuContent.favoritesComponent.model = kicker.globalFavorites;
+                kicker.bindAppModels(menuContent);
+            }
+        }
+
+        Component.onCompleted: {
+            menuContent.favoritesComponent.model = kicker.globalFavorites;
+            kicker.bindAppModels(menuContent);
+            // The popup is built on the first expand, so the entry point has to
+            // live here too or the very first keypress lands on nothing.
+            Qt.callLater(() => searchBar.focusSearchField());
+        }
+    }
+
+    // Keeps the All Programs views pointed at whichever shape the model has.
+    function bindAppModels(menuContent) {
+        if (!menuContent || !rootModel) return;
+        if (kicker.hierarchical) {
+            menuContent.appsView.treeModel = rootModel;
+        } else {
+            menuContent.appsView.flatModel = rootModel.modelForRow(0);
+        }
+        menuContent.runnerGrid.model = runnerModel;
+    }
+
+    // Drives the glow on the All Programs button while an application the user
+    // has never launched is sitting somewhere in the tree.
+    KItemModels.KSortFilterProxyModel {
+        id: newlyInstalledApps
+        sourceModel: rootModel
+        filterRowCallback: function (sourceRow, sourceParent) {
+            const role = sourceModel.KItemModels.KRoleNames.role("isNewlyInstalled");
+            return sourceModel.data(sourceModel.index(sourceRow, 0, sourceParent), role) === true;
+        }
     }
 
     Kicker.RootModel {
         id: rootModel
         autoPopulate: true
-        appNameFormat: 0
+        appNameFormat: Plasmoid.configuration.appNameFormat
         flat: true
-        sorted: true
-        showSeparators: true
         appletInterface: kicker
-        showAllApps: true
+
+        // Hierarchical mode keeps the category rows so they can be expanded in
+        // place; flat mode collapses everything into one alphabetical list.
+        sorted: !kicker.hierarchical
+        showSeparators: !kicker.hierarchical
+        showTopLevelItems: kicker.hierarchical
+        showAllApps: !kicker.hierarchical
+        showAllAppsCategorized: false
+
         showRecentApps: false
         showRecentDocs: false
         showPowerSession: false
+        highlightNewlyInstalledApps: Plasmoid.configuration.highlightNewApps
 
-        onShowRecentAppsChanged: {
-            Plasmoid.configuration.showRecentApps = showRecentApps;
-        }
-
-        onShowRecentDocsChanged: {
-            Plasmoid.configuration.showRecentDocs = showRecentDocs;
-        }
-
-        onRecentOrderingChanged: {
-            Plasmoid.configuration.recentOrdering = recentOrdering;
-        }
+        onRefreshed: Qt.callLater(() => kicker.modelsRefreshed())
 
         Component.onCompleted: {
             favoritesModel.initForClient("org.kde.plasma.kicker.favorites.instance-" + Plasmoid.id)
 
+            // Seeds the ten defaults on a first run only; an existing list is never overwritten.
             if (!Plasmoid.configuration.favoritesPortedToKAstats) {
                 if (favoritesModel.count < 1) {
                     favoritesModel.portOldFavorites(Plasmoid.configuration.favoriteApps);
                 }
                 Plasmoid.configuration.favoritesPortedToKAstats = true;
             }
-
-            refreshed.connect(function() {
-                if (typeof menuContent !== "undefined" && menuContent && menuContent.favoritesComponent) {
-                    menuContent.favoritesComponent.model = kicker.globalFavorites;
-                }
-                if (typeof menuContent !== "undefined" && menuContent && menuContent.allAppsGrid) {
-                    menuContent.allAppsGrid.model = rootModel.modelForRow(0);
-                }
-                if (typeof menuContent !== "undefined" && menuContent && menuContent.runnerGrid) {
-                    menuContent.runnerGrid.model = runnerModel;
-                }
-            });
-
             refresh();
         }
     }
 
     Connections {
+        target: Plasmoid.configuration
+
+        function onHierarchicalAllProgramsChanged() { rootModel.refresh(); }
+        function onHiddenApplicationsChanged() { rootModel.refresh(); }
+        function onFavoriteSystemActionsChanged() {
+            if (systemFavorites) systemFavorites.favorites = Plasmoid.configuration.favoriteSystemActions;
+        }
+    }
+
+    Connections {
         target: globalFavorites
+        // One way only; pushing the config list back would re-add the defaults on every start.
         function onFavoritesChanged() {
-            if (target) {
-                Plasmoid.configuration.favoriteApps = target.favorites;
-            }
+            if (target) Plasmoid.configuration.favoriteApps = target.favorites;
         }
     }
 
     Connections {
         target: systemFavorites
         function onFavoritesChanged() {
-            if (target) {
-                Plasmoid.configuration.favoriteSystemActions = target.favorites;
-            }
+            if (target) Plasmoid.configuration.favoriteSystemActions = target.favorites;
         }
     }
 
     Connections {
-        target: Plasmoid.configuration
-        function onFavoriteAppsChanged() {
-            if (globalFavorites) {
-                globalFavorites.favorites = Plasmoid.configuration.favoriteApps;
-            }
-        }
-
-        function onFavoriteSystemActionsChanged() {
-            if (systemFavorites) {
-                systemFavorites.favorites = Plasmoid.configuration.favoriteSystemActions;
-            }
-        }
-
-        function onHiddenApplicationsChanged() {
-            if (rootModel) {
-                rootModel.refresh();
-            }
+        target: runnerModel
+        function onQueryFinished() {
+            if (!kicker.fullRepresentationItem) return;
+            kicker.searchResultsReady();
         }
     }
+
+    signal searchResultsReady()
 
     Kicker.RunnerModel {
         id: runnerModel
         appletInterface: kicker
         favoritesModel: globalFavorites
+        mergeResults: true
         runners: {
             const results = ["quicksearch",
-                           "krunner_services",
-                           "krunner_systemsettings",
-                           "krunner_sessions",
-                           "krunner_powerdevil",
-                           "calculator",
-                           "unitconverter"];
-
+                             "krunner_services",
+                             "krunner_systemsettings",
+                             "krunner_sessions",
+                             "krunner_powerdevil",
+                             "calculator",
+                             "unitconverter"];
             if (Plasmoid.configuration.useExtraRunners) {
                 results.push(...Plasmoid.configuration.extraRunners);
             }
@@ -728,20 +652,7 @@ PlasmoidItem {
     ]
 
     Component.onCompleted: {
-        if (Plasmoid.hasOwnProperty("activationTogglesExpanded")) {
-            Plasmoid.activationTogglesExpanded = !kicker.isDash
-        }
-
         windowSystem.focusIn.connect(enableHideOnWindowDeactivate);
         dragHelper.dropped.connect(resetDragSource);
-    }
-
-    Connections {
-        target: kicker
-        function onExpandedChanged() {
-            if (kicker.expanded && fullRepresentation) {
-                // Focus será gerenciado automaticamente
-            }
-        }
     }
 }

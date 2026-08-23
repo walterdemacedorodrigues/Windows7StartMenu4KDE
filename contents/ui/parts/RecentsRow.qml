@@ -1,9 +1,10 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick 2.4
+import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.private.kicker 0.1 as Kicker
 import ".."
@@ -28,10 +29,15 @@ FavoritesGridView {
     Kicker.RecentUsageModel {
         id: frequentAppsModel
         ordering: 1 // Popular / Frequently Used
+        // Without this the query is shared with folders and documents, which
+        // crowded the list down to a handful of applications.
+        shownItems: Kicker.RecentUsageModel.OnlyApps
     }
 
     ListModel {
         id: appsWithRecentFiles
+        // actionList holds heterogeneous action objects, so role types must stay dynamic.
+        dynamicRoles: true
     }
 
     // Get Recent Files Helper
@@ -41,7 +47,6 @@ FavoritesGridView {
 
     // State
     property var lastFavoritesSnapshot: []
-    property QtObject currentMenu: null
 
     // Grid configuration
     width: parent.width
@@ -125,8 +130,6 @@ FavoritesGridView {
         return true;
     }
 
-    // ==== DIAGNOSTIC HELPERS (one-shot probe of the upstream model) ====
-
     // Build segregated model with apps and recent files
     function buildSegregatedModel() {
         appsWithRecentFiles.clear();
@@ -160,7 +163,7 @@ FavoritesGridView {
 
         // Collect valid apps excluding favorites
         var totalApps = frequentAppsModel.count;
-        var targetAppsCount = 10;
+        var targetAppsCount = Plasmoid.configuration.numberRecentApps;
         var addedAppsCount = 0;
         var maxSearchApps = Math.min(totalApps, 50);
 
@@ -231,7 +234,6 @@ FavoritesGridView {
                     }
                 }
 
-                console.log("[Recents.Merge]", item.display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
 
                 appsWithRecentFiles.append({
                     "display": item.display,
@@ -273,30 +275,20 @@ FavoritesGridView {
 
 
     // Show recent files menu
+    readonly property bool jumpOpen: jumpList.opened
+
+    JumpListFlyout {
+        id: jumpList
+        onItemTriggered: recentsGrid.menuClosed()
+    }
+
     function showRecentFilesMenu(index, visualParent) {
-        var item = appsWithRecentFiles.get(index);
+        const item = appsWithRecentFiles.get(index);
         if (!item || !item.launcherUrl) return;
-
-        if (currentMenu) {
-            currentMenu.destroy();
-            currentMenu = null;
-        }
-
-        try {
-            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
-
-            if (result.count > 0) {
-                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
-                if (currentMenu) {
-                    currentMenu.visualParent = visualParent;
-                    currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                    currentMenu.openRelative();
-                    console.log("[Recents] ✓ Menu opened for", item.display, "with", result.count, "items");
-                }
-            }
-        } catch (e) {
-            console.log("[Recents] ✗ Menu error:", e);
-        }
+        if (jumpList.opened) jumpList.close();
+        const result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
+        if (!result || result.count <= 0) return;
+        jumpList.openFor(visualParent, result.actions, result.title);
     }
 
     // Handle item activation
@@ -342,15 +334,11 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
-        console.log("[Recents] Key pressed:", event.key, "Qt.Key_Right:", Qt.Key_Right, "currentMenu:", currentMenu);
 
         // Close submenu with Left or Escape
-        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
-            console.log("[Recents] Closing submenu");
+        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && jumpList.opened) {
             event.accepted = true;
-            currentMenu.close();
-            currentMenu.destroy();
-            currentMenu = null;
+            jumpList.close();
             recentsGrid.forceActiveFocus();
             return;
         }
@@ -364,13 +352,17 @@ FavoritesGridView {
         // DON'T capture Key_Up here - let FavoritesGridView keyNavUp signal handle it
 
         if (event.key === Qt.Key_Up && currentIndex < Math.floor(width / cellWidth)) {
-            console.log("[Recents] KeyNavUp to Favorites");
             event.accepted = true;
             recentsGrid.keyNavUp();
         }
     }
 
     // Update when models change
+    Connections {
+        target: Plasmoid.configuration
+        function onNumberRecentAppsChanged() { Qt.callLater(buildSegregatedModel); }
+    }
+
     Connections {
         target: frequentAppsModel
         function onCountChanged() {

@@ -1,10 +1,12 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick 2.4
 import QtCore
+import org.kde.plasma.plasmoid 2.0
+import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 
 /**
@@ -12,7 +14,7 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
  * Reads per-application recent files from ~/.local/share/recently-used.xbel
  * Replaces the removed org.kde.plasma.private.taskmanager.Backend dependency.
  */
-QtObject {
+Item {
     id: getRecentFilesHelper
 
     // Emitted once the XBEL file has been parsed and the cache is ready.
@@ -51,52 +53,109 @@ QtObject {
         return "text-x-generic";
     }
 
+    // XMLHttpRequest refuses local file URLs, so the bookmark file is read
+    // through the executable engine and reparsed from a data URI.
+    property P5Support.DataSource _reader: P5Support.DataSource {
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            disconnectSource(sourceName);
+            getRecentFilesHelper._ingest(data["stdout"] || "");
+        }
+    }
+
     function _loadXbel() {
-        var dataPath = StandardPaths.writableLocation(StandardPaths.GenericDataLocation);
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState !== XMLHttpRequest.DONE) return;
-            var newCache = {};
-            if (xhr.responseXML) {
-                _parseXbel(xhr.responseXML, newCache);
-            }
-            _xbelCache = newCache;
-            _cacheReady = true;
-            getRecentFilesHelper.cacheLoaded();
-        };
-        xhr.open("GET", "file://" + dataPath + "/recently-used.xbel");
-        xhr.send();
+        var dataPath = StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
+                           .toString().replace(/^file:\/\//, "");
+        _reader.connectSource("cat " + _shellQuote(dataPath + "/recently-used.xbel"));
+    }
+
+    function _shellQuote(path) {
+        return "'" + path.replace(/'/g, "'\\''") + "'";
+    }
+
+    function _ingest(xmlText) {
+        var newCache = {};
+        if (xmlText.trim() !== "") {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== XMLHttpRequest.DONE) return;
+                if (xhr.responseXML) _parseXbel(xhr.responseXML, newCache);
+            };
+            xhr.open("GET", "data:text/xml;charset=utf-8," + encodeURIComponent(xmlText));
+            xhr.send();
+        }
+        _xbelCache = newCache;
+        _cacheReady = true;
+        getRecentFilesHelper.cacheLoaded();
+    }
+
+    // Rereads the bookmark file so freshly opened documents show up.
+    function refresh() {
+        _loadXbel();
+    }
+
+    // Qt's XMLHttpRequest exposes only a read only DOM subset with no
+    // getElementsByTagName, so the tree is walked by hand.
+    function _localName(nodeName) {
+        var colon = nodeName.indexOf(":");
+        return colon === -1 ? nodeName : nodeName.substring(colon + 1);
+    }
+
+    function _attr(node, name) {
+        if (!node || !node.attributes) return "";
+        for (var i = 0; i < node.attributes.length; i++) {
+            if (_localName(node.attributes[i].nodeName) === name) return node.attributes[i].nodeValue;
+        }
+        return "";
+    }
+
+    function _text(node) {
+        if (!node || !node.childNodes) return "";
+        var out = "";
+        for (var i = 0; i < node.childNodes.length; i++) {
+            var child = node.childNodes[i];
+            if (child.nodeType === 3 || child.nodeType === 4) out += child.nodeValue;
+        }
+        return out;
+    }
+
+    function _collect(node, name, out) {
+        if (!node || !node.childNodes) return out;
+        for (var i = 0; i < node.childNodes.length; i++) {
+            var child = node.childNodes[i];
+            if (child.nodeType !== 1) continue;
+            if (_localName(child.nodeName) === name) out.push(child);
+            else _collect(child, name, out);
+        }
+        return out;
     }
 
     function _parseXbel(doc, cache) {
-        var BOOKMARK_NS = "http://www.freedesktop.org/standards/desktop-bookmarks";
-        var bookmarks = doc.getElementsByTagName("bookmark");
+        var bookmarks = _collect(doc.documentElement, "bookmark", []);
 
         for (var i = 0; i < bookmarks.length; i++) {
             var bm = bookmarks[i];
-            var href = bm.getAttribute("href") || "";
-            if (!href.startsWith("file://")) continue;
+            var href = _attr(bm, "href");
+            if (href.indexOf("file://") !== 0) continue;
 
-            // Extract title
-            var titleNodes = bm.getElementsByTagName("title");
-            var rawTitle = (titleNodes.length > 0 ? titleNodes[0].textContent : "").trim();
+            var titleNodes = _collect(bm, "title", []);
+            var rawTitle = (titleNodes.length > 0 ? _text(titleNodes[0]) : "").trim();
             if (!rawTitle) {
                 var hrefParts = href.split("/");
                 rawTitle = decodeURIComponent(hrefParts[hrefParts.length - 1]);
             }
-            // Skip entries without a file extension (likely directories)
+            // Entries without an extension are almost always directories.
             if (rawTitle.indexOf(".") === -1) continue;
 
-            var visited = bm.getAttribute("visited") || bm.getAttribute("modified") || "";
+            var visited = _attr(bm, "visited") || _attr(bm, "modified") || "";
 
-            // Find which apps opened this file
-            var appNodes = bm.getElementsByTagNameNS(BOOKMARK_NS, "application");
+            var appNodes = _collect(bm, "application", []);
             for (var j = 0; j < appNodes.length; j++) {
-                var appName = (appNodes[j].getAttribute("name") || "").toLowerCase();
+                var appName = _attr(appNodes[j], "name").toLowerCase();
                 if (!appName) continue;
                 if (!cache[appName]) cache[appName] = [];
 
-                // Avoid duplicates
                 var dup = false;
                 for (var k = 0; k < cache[appName].length; k++) {
                     if (cache[appName][k].href === href) { dup = true; break; }
@@ -112,7 +171,6 @@ QtObject {
             }
         }
 
-        // Sort each app's list: most recently visited first
         for (var app in cache) {
             cache[app].sort(function(a, b) { return (b.visited > a.visited) ? 1 : -1; });
         }
@@ -132,11 +190,11 @@ QtObject {
      * Get the count of recent files for an application
      * @param launcherUrl - Application launcher URL (e.g., "applications:firefox.desktop")
      * @param parentItem - Unused, kept for API compatibility
-     * @return Number of recent files available (max 10)
+     * @return Number of recent files available, capped by numberRecentFiles
      */
     function getRecentFilesCount(launcherUrl, parentItem) {
         if (!_cacheReady || !launcherUrl) return 0;
-        return Math.min(_getCachedFiles(launcherUrl).length, 10);
+        return Math.min(_getCachedFiles(launcherUrl).length, Plasmoid.configuration.numberRecentFiles);
     }
 
     /**
@@ -153,7 +211,7 @@ QtObject {
         if (files.length === 0) return result;
 
         var actions = [];
-        for (var i = 0; i < Math.min(files.length, 10); i++) {
+        for (var i = 0; i < Math.min(files.length, Plasmoid.configuration.numberRecentFiles); i++) {
             actions.push((function(f) {
                 return {
                     text: f.text,
@@ -246,26 +304,16 @@ QtObject {
         try {
             var favIndex = favoritesModel.index(index, 0);
 
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Testing index:", index);
-            console.log("  Qt.UserRole + 0:", favoritesModel.data(favIndex, Qt.UserRole));
-            console.log("  Qt.UserRole + 1:", favoritesModel.data(favIndex, Qt.UserRole + 1));
-            console.log("  Qt.UserRole + 2:", favoritesModel.data(favIndex, Qt.UserRole + 2));
-            console.log("  Qt.UserRole + 3:", favoritesModel.data(favIndex, Qt.UserRole + 3));
-            console.log("  Qt.UserRole + 4:", favoritesModel.data(favIndex, Qt.UserRole + 4));
-            console.log("  Qt.UserRole + 5:", favoritesModel.data(favIndex, Qt.UserRole + 5));
 
             for (var i = 0; i <= 10; i++) {
                 var urlTest = favoritesModel.data(favIndex, Qt.UserRole + i);
                 if (urlTest && typeof urlTest === "string" && urlTest.indexOf("applications:") === 0) {
-                    console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✓ Found URL at UserRole +" + i + ":", urlTest);
                     return urlTest;
                 }
             }
 
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] ✗ No valid URL found for index:", index);
             return "";
         } catch (e) {
-            console.log("[GetRecentFiles.extractFavoriteLauncherUrl] Exception:", e);
             return "";
         }
     }

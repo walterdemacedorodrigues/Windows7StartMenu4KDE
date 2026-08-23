@@ -1,6 +1,6 @@
 /*
  *  SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
- *  SPDX-License-Identifier: GPL-3.0-or-later
+ *  SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 import QtQuick 2.4
@@ -25,7 +25,6 @@ FavoritesGridView {
     signal menuClosed()
 
     // Current menu reference
-    property QtObject currentMenu: null
 
     // External model reference (set by parent)
     property var externalFavoritesModel: null
@@ -33,6 +32,8 @@ FavoritesGridView {
     // Local model with recent files data
     ListModel {
         id: favoritesWithRecentFiles
+        // actionList holds heterogeneous action objects, so role types must stay dynamic.
+        dynamicRoles: true
     }
 
     // Get Recent Files Helper
@@ -61,11 +62,9 @@ FavoritesGridView {
         favoritesWithRecentFiles.clear();
 
         if (!externalFavoritesModel) {
-            console.log("[Favorites] No external model");
             return;
         }
 
-        console.log("[Favorites] Building model from", externalFavoritesModel.count, "favorites");
 
         for (var i = 0; i < externalFavoritesModel.count; i++) {
             try {
@@ -129,7 +128,6 @@ FavoritesGridView {
                     }
                 }
 
-                console.log("[Favorites.Merge]", display, "→ desktop:", desktopActions.length, "merged:", mergedActions.length);
 
                 // Append to local model
                 favoritesWithRecentFiles.append({
@@ -147,42 +145,28 @@ FavoritesGridView {
                     "originalIndex": i
                 });
 
-                console.log("[Favorites] [" + i + "]", display, "→ hasRecentFiles:", hasRecentFiles, "count:", recentFilesCount);
             } catch (e) {
-                console.log("[Favorites] Error processing favorite", i, ":", e);
                 continue;
             }
         }
 
-        console.log("[Favorites] Model built with", favoritesWithRecentFiles.count, "items");
     }
 
     // Show recent files menu for a favorite item
+    readonly property bool jumpOpen: jumpList.opened
+
+    JumpListFlyout {
+        id: jumpList
+        onItemTriggered: favoritesGrid.menuClosed()
+    }
+
     function showRecentFilesMenu(index, visualParent) {
-        var item = favoritesWithRecentFiles.get(index);
+        const item = favoritesWithRecentFiles.get(index);
         if (!item || !item.launcherUrl) return;
-
-        // Destroy previous menu
-        if (currentMenu) {
-            currentMenu.destroy();
-            currentMenu = null;
-        }
-
-        try {
-            var result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, favoritesGrid);
-
-            if (result.count > 0) {
-                currentMenu = getRecentFilesHelper.createMenuFromActions(result.actions, visualParent, result.title);
-                if (currentMenu) {
-                    currentMenu.visualParent = visualParent;
-                    currentMenu.placement = PlasmaExtras.Menu.RightPosedTopAlignedPopup;
-                    currentMenu.openRelative();
-                    console.log("[Favorites] ✓ Menu opened for", item.display, "with", result.count, "items");
-                }
-            }
-        } catch (e) {
-            console.log("[Favorites] ✗ Menu error:", e);
-        }
+        if (jumpList.opened) jumpList.close();
+        const result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, favoritesGrid);
+        if (!result || result.count <= 0) return;
+        jumpList.openFor(visualParent, result.actions, result.title);
     }
 
     // Grid configuration
@@ -227,7 +211,6 @@ FavoritesGridView {
                     }
                 }
 
-                console.log("[Favorites] ✓ Opening submenu for index:", index);
                 showRecentFilesMenu(index, visualItem || favoritesGrid);
             }
         }
@@ -235,15 +218,11 @@ FavoritesGridView {
 
     // Keyboard navigation
     Keys.onPressed: (event) => {
-        console.log("[Favorites] Key pressed:", event.key, "Qt.Key_Right:", Qt.Key_Right, "currentMenu:", currentMenu);
 
         // Close submenu with Left or Escape
-        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && currentMenu) {
-            console.log("[Favorites] Closing submenu");
+        if ((event.key === Qt.Key_Left || event.key === Qt.Key_Escape) && jumpList.opened) {
             event.accepted = true;
-            currentMenu.close();
-            currentMenu.destroy();
-            currentMenu = null;
+            jumpList.close();
             favoritesGrid.forceActiveFocus();
             return;
         }
@@ -257,7 +236,6 @@ FavoritesGridView {
         // DON'T capture Key_Up here - let FavoritesGridView keyNavUp signal handle it
 
         if (event.key === Qt.Key_Down && currentIndex >= (count - Math.floor(width / cellWidth))) {
-            console.log("[Favorites] KeyNavDown to Recents");
             event.accepted = true;
             favoritesGrid.keyNavDown();
         }

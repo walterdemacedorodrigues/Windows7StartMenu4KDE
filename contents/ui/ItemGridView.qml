@@ -1,7 +1,7 @@
 /*
     SPDX-FileCopyrightText: 2025 Walter Rodrigues <wmr2@cin.ufpe.br>
     SPDX-FileCopyrightText: 2015 Eike Hein <hein@kde.org>
-    SPDX-License-Identifier: GPL-2.0-or-later
+    SPDX-License-Identifier: AGPL-3.0-or-later
 */
 
 import QtQuick 2.15
@@ -45,10 +45,8 @@ FocusScope {
         }
     }
 
-    onFocusChanged: {
-        console.log("[ItemGridView] Focus changed to:", focus, "currentIndex:", currentIndex);
-        //if (!focus && !root.keyEventProxy.activeFocus) {
-        if (!focus) {
+    onActiveFocusChanged: {
+        if (!activeFocus) {
             currentIndex = -1;
         }
     }
@@ -60,7 +58,6 @@ FocusScope {
 
         var columns = Math.floor(width / itemGrid.cellWidth);
         var row = Math.floor(currentIndex / columns);
-        console.log("[ItemGridView.currentRow] currentIndex:", currentIndex, "width:", width, "cellWidth:", itemGrid.cellWidth, "columns:", columns, "row:", row);
         return row;
     }
 
@@ -71,14 +68,12 @@ FocusScope {
 
         var columns = Math.floor(width / itemGrid.cellWidth);
         var col = currentIndex - (currentRow() * columns);
-        console.log("[ItemGridView.currentCol] currentIndex:", currentIndex, "columns:", columns, "col:", col);
         return col;
     }
 
     function lastRow() {
         var columns = Math.floor(width / itemGrid.cellWidth);
         var lastRow = Math.ceil(count / columns) - 1;
-        console.log("[ItemGridView.lastRow] count:", count, "columns:", columns, "lastRow:", lastRow);
         return lastRow;
     }
 
@@ -287,7 +282,6 @@ FocusScope {
                 highlightMoveDuration: 0
 
                 onCurrentIndexChanged: {
-                    console.log("[ItemGridView.GridView] currentIndex changed to:", currentIndex);
                     if (currentIndex !== -1) {
                         hoverArea.hoverEnabled = false
                         focus = true;
@@ -305,50 +299,40 @@ FocusScope {
 
                 Keys.onLeftPressed: event => {
                                         var columns = Math.floor(itemGrid.width / itemGrid.cellWidth);
-                                        console.log("[ItemGridView] Left pressed - columns:", columns, "currentCol:", itemGrid.currentCol(), "itemGrid.width:", itemGrid.width, "itemGrid.cellWidth:", itemGrid.cellWidth);
 
                                         // Only navigate left if we have multiple columns
                                         if (columns > 1 && itemGrid.currentCol() !== 0) {
                                             event.accepted = true;
                                             moveCurrentIndexLeft();
-                                            console.log("[ItemGridView] Moved left");
                                         } else {
-                                            console.log("[ItemGridView] Calling keyNavLeft");
                                             itemGrid.keyNavLeft();
                                         }
                                     }
 
                 Keys.onRightPressed: event => {
                                          var columns = Math.floor(itemGrid.width / itemGrid.cellWidth);
-                                         console.log("[ItemGridView] Right pressed - columns:", columns, "currentCol:", itemGrid.currentCol(), "currentIndex:", currentIndex, "count:", count, "itemGrid.width:", itemGrid.width, "itemGrid.cellWidth:", itemGrid.cellWidth);
 
                                          // Only navigate right if we have multiple columns
                                          if (columns > 1 && itemGrid.currentCol() !== columns - 1 && currentIndex !== count -1) {
                                              event.accepted = true;
                                              moveCurrentIndexRight();
-                                             console.log("[ItemGridView] Moved right");
                                          } else {
-                                             console.log("[ItemGridView] Calling keyNavRight");
                                              itemGrid.keyNavRight();
                                          }
                                      }
 
                 Keys.onUpPressed: event => {
-                                      console.log("[ItemGridView] Up pressed - currentRow:", itemGrid.currentRow(), "currentIndex:", currentIndex);
                                       if (itemGrid.currentRow() !== 0) {
                                           event.accepted = true;
                                           moveCurrentIndexUp();
                                           positionViewAtIndex(currentIndex, GridView.Contain);
-                                          console.log("[ItemGridView] Moved up to index:", currentIndex);
                                       } else {
-                                          console.log("[ItemGridView] At top, calling keyNavUp");
                                           itemGrid.keyNavUp();
                                       }
                                   }
 
                 Keys.onDownPressed: event => {
                                         var columns = Math.floor(itemGrid.width / itemGrid.cellWidth);
-                                        console.log("[ItemGridView] Down pressed - currentRow:", itemGrid.currentRow(), "lastRow:", itemGrid.lastRow(), "currentIndex:", currentIndex, "count:", count, "columns:", columns, "itemGrid.cellWidth:", itemGrid.cellWidth, "itemGrid.width:", itemGrid.width, "gridView.width:", width);
 
                                         if (itemGrid.currentRow() < itemGrid.lastRow()) {
                                             // Fix moveCurrentIndexDown()'s lack of proper spatial nav down
@@ -356,10 +340,8 @@ FocusScope {
                                             event.accepted = true;
                                             var newIndex = currentIndex + columns;
                                             currentIndex = Math.min(newIndex, count - 1);
-                                            console.log("[ItemGridView] Moved down to index:", currentIndex, "newIndex was:", newIndex);
                                             positionViewAtIndex(currentIndex, GridView.Contain);
                                         } else {
-                                            console.log("[ItemGridView] At bottom, calling keyNavDown");
                                             itemGrid.keyNavDown();
                                         }
                                     }
