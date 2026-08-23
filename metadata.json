@@ -2,6 +2,7 @@
     "KPackageStructure": "Plasma/Applet",
     "KPlugin": {
         "Id": "Windows7StartMenu4KDE",
+        "Version": "1.2.0",
         "Name": "Windows7StartMenu4KDE",
         "Description": "Windows 7 style application launcher",
         "Category": "Application Launchers",
@@ -15,7 +16,7 @@
             }
         ],
         "Website": "https://github.com/walterdemacedorodrigues/Windows7StartMenu4KDE",
-        "BugReportUrl": ""
+        "BugReportUrl": "https://github.com/walterdemacedorodrigues/Windows7StartMenu4KDE/issues"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-Provides": [

@@ -9,3 +9,4 @@ X-Plasma-API=declarativeappletscript
 X-Plasma-MainScript=ui/main.qml
 X-KDE-PluginInfo-Name=Windows7StartMenu4KDE
 
+X-KDE-PluginInfo-Version=1.2.0
