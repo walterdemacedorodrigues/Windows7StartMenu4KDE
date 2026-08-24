@@ -36,6 +36,11 @@ FavoritesGridView {
         dynamicRoles: true
     }
 
+    Functions.ModelRoles {
+        id: favoritesReader
+        sourceModel: externalFavoritesModel
+    }
+
     // Get Recent Files Helper
     Functions.GetRecentFiles {
         id: getRecentFilesHelper
@@ -68,24 +73,21 @@ FavoritesGridView {
 
         for (var i = 0; i < externalFavoritesModel.count; i++) {
             try {
-                var favIndex = externalFavoritesModel.index(i, 0);
+                var entry = favoritesReader.row(i);
+                if (!entry) continue;
 
-                // Extract data from external model
-                var display = externalFavoritesModel.data(favIndex, Qt.DisplayRole) || "";
-                var decoration = externalFavoritesModel.data(favIndex, Qt.DecorationRole);
-                var favoriteId = externalFavoritesModel.data(favIndex, Qt.UserRole + 2) || "";
-                var url = externalFavoritesModel.data(favIndex, Qt.UserRole + 1) || "";
+                var display = entry.roleDisplay;
+                var decoration = entry.roleDecoration;
+                var favoriteId = entry.roleFavoriteId;
+                var url = entry.roleUrl;
 
                 // Extract launcher URL (with "applications:" prefix)
-                var desktopFile = externalFavoritesModel.data(favIndex, Qt.UserRole + 3) || "";
                 var launcherUrl = "";
 
-                if (desktopFile && desktopFile.indexOf(".desktop") !== -1) {
-                    launcherUrl = "applications:" + desktopFile;
+                if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
+                    launcherUrl = favoriteId.indexOf("applications:") === 0 ? favoriteId : "applications:" + favoriteId;
                 } else if (url && url.indexOf(".desktop") !== -1) {
                     launcherUrl = url;
-                } else if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
-                    launcherUrl = favoriteId.indexOf("applications:") === 0 ? favoriteId : "applications:" + favoriteId;
                 }
 
                 // Get recent files info
@@ -98,8 +100,7 @@ FavoritesGridView {
 
                 var iconValue = (typeof decoration === "object" && decoration !== null) ? "" : decoration || "";
 
-                // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
-                var desktopActions = externalFavoritesModel.data(favIndex, Qt.UserRole + 9) || [];
+                var desktopActions = entry.roleActionList;
 
                 // Merge: Remove from Favorites first, then desktop actions
                 var mergedActions = [];

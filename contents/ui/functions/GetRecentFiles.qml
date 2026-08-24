@@ -291,30 +291,4 @@ Item {
 
         return menu;
     }
-
-    /**
-     * Extract the correct launcher URL from a favorites model item
-     * @param favoritesModel - The favorites model
-     * @param index - Model index
-     * @return Launcher URL string or empty string
-     */
-    function extractFavoriteLauncherUrl(favoritesModel, index) {
-        if (!favoritesModel) return "";
-
-        try {
-            var favIndex = favoritesModel.index(index, 0);
-
-
-            for (var i = 0; i <= 10; i++) {
-                var urlTest = favoritesModel.data(favIndex, Qt.UserRole + i);
-                if (urlTest && typeof urlTest === "string" && urlTest.indexOf("applications:") === 0) {
-                    return urlTest;
-                }
-            }
-
-            return "";
-        } catch (e) {
-            return "";
-        }
-    }
 }

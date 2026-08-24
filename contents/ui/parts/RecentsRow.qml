@@ -40,6 +40,16 @@ FavoritesGridView {
         dynamicRoles: true
     }
 
+    Functions.ModelRoles {
+        id: appsReader
+        sourceModel: frequentAppsModel
+    }
+
+    Functions.ModelRoles {
+        id: favoritesReader
+        sourceModel: favoritesModel
+    }
+
     // Get Recent Files Helper
     Functions.GetRecentFiles {
         id: getRecentFilesHelper
@@ -58,8 +68,8 @@ FavoritesGridView {
         if (favoritesModel) {
             for (var f = 0; f < favoritesModel.count; f++) {
                 try {
-                    var favIndex = favoritesModel.index(f, 0);
-                    var favoriteUrl = favoritesModel.data(favIndex, Qt.UserRole + 1) || "";
+                    var favEntry = favoritesReader.row(f);
+                    var favoriteUrl = favEntry ? favEntry.roleUrl : "";
                     if (favoriteUrl) snapshot.push(favoriteUrl);
                 } catch (e) {
                     continue;
@@ -81,27 +91,16 @@ FavoritesGridView {
     }
 
     // Extract launcher URL from model item
-    function extractLauncherUrl(modelItem, originalIndex) {
+    function extractLauncherUrl(modelItem) {
         if (!modelItem) return "";
 
-        try {
-            var modelIndex = frequentAppsModel.index(originalIndex, 0);
-            var desktopFile = frequentAppsModel.data(modelIndex, Qt.UserRole + 3);
-
-            if (desktopFile && desktopFile.indexOf(".desktop") !== -1) {
-                return "applications:" + desktopFile;
-            }
-        } catch (e) {
-            return "";
+        var favoriteId = modelItem.favoriteId || "";
+        if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
+            return favoriteId.indexOf("applications:") === 0 ? favoriteId : "applications:" + favoriteId;
         }
 
         var url = modelItem.url || "";
         if (url && url.indexOf(".desktop") !== -1) return url;
-
-        var favoriteId = modelItem.favoriteId || "";
-        if (favoriteId && favoriteId.indexOf(".desktop") !== -1) {
-            return "applications:" + favoriteId;
-        }
 
         return "";
     }
@@ -117,11 +116,12 @@ FavoritesGridView {
 
         var display = modelItem.display || "";
         var url = modelItem.url || "";
-        var favoriteId = modelItem.favoriteId || "";
+        // group is the section header Kicker assigns, never an identifier
+        var group = modelItem.group || "";
 
         if (!display || display.trim() === "") return false;
-        if (favoriteId === "Pastas" || favoriteId === "Folders" || favoriteId === "Arquivos") return false;
-        if (favoriteId === "Aplicativos") return true;
+        if (group === "Pastas" || group === "Folders" || group === "Arquivos") return false;
+        if (group === "Aplicativos" || group === "Applications") return true;
         if (url && url.toLowerCase().indexOf(".desktop") !== -1) return true;
         if (display.length < 2) return false;
         if (/^[0-9\W]+$/.test(display)) return false;
@@ -140,10 +140,12 @@ FavoritesGridView {
         if (favoritesModel) {
             for (var f = 0; f < favoritesModel.count; f++) {
                 try {
-                    var favIndex = favoritesModel.index(f, 0);
-                    var favoriteId = favoritesModel.data(favIndex, Qt.UserRole + 2) || "";
-                    var favoriteUrl = favoritesModel.data(favIndex, Qt.UserRole + 1) || "";
-                    var favoriteDisplay = favoritesModel.data(favIndex, Qt.DisplayRole) || "";
+                    var favEntry = favoritesReader.row(f);
+                    if (!favEntry) continue;
+
+                    var favoriteId = favEntry.roleFavoriteId;
+                    var favoriteUrl = favEntry.roleUrl;
+                    var favoriteDisplay = favEntry.roleDisplay;
 
                     if (favoriteId) favoriteIds.add(favoriteId);
                     if (favoriteUrl) favoriteIds.add(favoriteUrl);
@@ -169,18 +171,21 @@ FavoritesGridView {
 
         for (var i = 0; i < maxSearchApps && addedAppsCount < targetAppsCount; i++) {
             try {
-                var modelIndex = frequentAppsModel.index(i, 0);
+                var entry = appsReader.row(i);
+                if (!entry) continue;
+
                 var item = {
-                    display: frequentAppsModel.data(modelIndex, Qt.DisplayRole) || "",
-                    decoration: frequentAppsModel.data(modelIndex, Qt.DecorationRole),
-                    url: frequentAppsModel.data(modelIndex, Qt.UserRole + 1) || "",
-                    favoriteId: frequentAppsModel.data(modelIndex, Qt.UserRole + 2) || "",
+                    display: entry.roleDisplay,
+                    decoration: entry.roleDecoration,
+                    url: entry.roleUrl,
+                    favoriteId: entry.roleFavoriteId,
+                    group: entry.roleGroup,
                     originalIndex: i
                 };
 
                 if (!isValidApplication(item)) continue;
 
-                var launcherUrl = extractLauncherUrl(item, i);
+                var launcherUrl = extractLauncherUrl(item);
                 if (!launcherUrl) continue;
 
                 // Check if duplicate
@@ -204,8 +209,7 @@ FavoritesGridView {
                 var hasRecentFiles = recentFilesCount > 0;
                 var iconValue = (typeof item.decoration === "object" && item.decoration !== null) ? "" : item.decoration || "";
 
-                // Get .desktop actions from model (Qt.UserRole + 9 = ActionListRole)
-                var desktopActions = frequentAppsModel.data(modelIndex, Qt.UserRole + 9) || [];
+                var desktopActions = entry.roleActionList;
 
                 // Merge: Add to Favorites first, then desktop actions
                 var mergedActions = [];

@@ -622,7 +622,7 @@ FocusScope {
                                                dragHelper.startDrag(kicker, item.url, item.icon,
                                                                     "text/x-plasmoidservicename", item.m.pluginName);
                                            } else {
-                                               dragHelper.startDrag(kicker,item.url);
+                                               dragHelper.startDrag(kicker, item.url, item.icon);
                                            }
                                            kicker.dragSource = item;
                                            pressX = -1;
