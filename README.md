@@ -29,7 +29,7 @@ Planned enhancements and ongoing improvements:
 * [x] Enhance keyboard navigation across menu sections and items.
 * [ ] Improve language support and ensure complete translations.
 * [ ] Polish the user icon display and related aesthetic/functional elements.
-* [ ] Add more user-configurable settings (e.g. pinning behavior, menu size, icon size).
+* [x] Add more user-configurable settings (e.g. pinning behavior, menu size, icon size).
 
 ---
 
