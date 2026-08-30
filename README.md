@@ -17,6 +17,11 @@ This plasmoid replicates the key functionalities of the original Windows 7 Start
 * 🗂️ **Categorized application list**: Well-structured categories (Accessories, System Tools, etc.).
 * 🔒 **User actions**: Shutdown, Restart, Hibernate, Log out options available in the bottom-right corner.
 * 👤 **User icon and name**: Visual identification of the current user with avatar and username.
+* 📌 **Jump lists**: Each application row opens a flyout with its recent documents and the tasks published by its `.desktop` file.
+* 🎨 **Configurable appearance**: Independent tint and opacity for the menu, the application list and the side panel, plus ClassicShell/OpenShell orb textures for the panel button.
+* ⌨️ **Keyboard navigation**: The whole menu, including the category tree and the jump list flyouts, is reachable without the mouse.
+* 🙈 **Hidden applications**: Entries can be hidden from the list and restored later from the settings dialog.
+* 🌍 **Translations**: Nine locales bundled — Spanish, French, Hebrew, Korean, Dutch, Polish, Brazilian Portuguese, Russian and Turkish. See [`translate/ReadMe.md`](translate/ReadMe.md) to add yours.
 * 🧩 **Integration with KDE Plasma**: Fully functional as a native KDE launcher, respecting theme and panel behavior.
 
 ---
@@ -27,7 +32,7 @@ Planned enhancements and ongoing improvements:
 
 * [x] Refactor the codebase to improve readability and maintainability.
 * [x] Enhance keyboard navigation across menu sections and items.
-* [ ] Improve language support and ensure complete translations.
+* [x] Improve language support and ensure complete translations.
 * [ ] Polish the user icon display and related aesthetic/functional elements.
 * [x] Add more user-configurable settings (e.g. pinning behavior, menu size, icon size).
 
@@ -41,7 +46,7 @@ GitHub: [https://github.com/walterdemacedorodrigues/Windows7StartMenu4KDE](https
 
 ## 📄 License
 
-This project is licensed under the GPL-2.0+.
+This project is licensed under the AGPL-3.0-or-later, the same licence as the bundled [`LICENSE`](LICENSE) file.
 
 ---
 
