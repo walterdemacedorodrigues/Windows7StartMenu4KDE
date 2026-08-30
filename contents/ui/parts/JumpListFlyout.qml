@@ -18,6 +18,8 @@ PlasmaComponents.Menu {
     property Item anchorItem: null
 
     signal itemTriggered()
+    // Entries taken from a Kicker actionList carry no closure, only an id to dispatch.
+    signal actionRequested(string actionId, var actionArgument)
 
     function openFor(item, actionList, title) {
         if (!actionList || actionList.length === 0) return false;
@@ -52,6 +54,7 @@ PlasmaComponents.Menu {
 
             onTriggered: {
                 if (typeof modelData.trigger === "function") modelData.trigger();
+                else if (modelData.actionId) flyout.actionRequested(String(modelData.actionId), modelData.actionArgument);
                 flyout.itemTriggered();
             }
 

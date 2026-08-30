@@ -43,6 +43,16 @@ FocusScope {
     property alias cellHeight: gridView.cellHeight
     property alias iconSize: gridView.iconSize
 
+    // Menu actions run against the Kicker model behind the local one, on its own row index.
+    property var actionModel: null
+
+    function runAction(index, actionId, actionArgument) {
+        var target = actionModel || model;
+        var item = (model && typeof model.get === "function") ? model.get(index) : null;
+        var targetIndex = (actionModel && item && item.originalIndex !== undefined) ? item.originalIndex : index;
+        return Tools.triggerAction(target, targetIndex, actionId, actionArgument) === true;
+    }
+
     // Propriedades de scroll removidas/desabilitadas para favoritos
     property var horizontalScrollBarPolicy: PlasmaComponents.ScrollBar.AlwaysOff
     property var verticalScrollBarPolicy: PlasmaComponents.ScrollBar.AlwaysOff
@@ -272,7 +282,7 @@ FocusScope {
 
                 function actionTriggered(actionId, actionArgument) {
                     // Tools.triggerAction handles all actions including favorites automatically
-                    var close = (Tools.triggerAction(GridView.view.model, model.index, actionId, actionArgument) === true);
+                    var close = itemGrid.runAction(model.index, actionId, actionArgument);
 
                     // Don't close menu for favorite actions
                     if (actionId && (actionId.indexOf("_kicker_favorite_") === 0)) {

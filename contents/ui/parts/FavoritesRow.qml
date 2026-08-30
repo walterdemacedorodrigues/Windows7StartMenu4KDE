@@ -155,15 +155,20 @@ FavoritesGridView {
 
     // Show recent files menu for a favorite item
     readonly property bool jumpOpen: jumpList.opened
+    property int jumpIndex: -1
 
     JumpListFlyout {
         id: jumpList
         onItemTriggered: favoritesGrid.menuClosed()
+        onActionRequested: (actionId, actionArgument) => {
+            if (favoritesGrid.jumpIndex >= 0) favoritesGrid.runAction(favoritesGrid.jumpIndex, actionId, actionArgument);
+        }
     }
 
     function showRecentFilesMenu(index, visualParent) {
         const item = favoritesWithRecentFiles.get(index);
         if (!item || !item.launcherUrl) return;
+        jumpIndex = index;
         if (jumpList.opened) jumpList.close();
         const result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, favoritesGrid);
         if (!result || result.count <= 0) return;
@@ -174,6 +179,7 @@ FavoritesGridView {
     focus: true
     width: parent.width
     model: favoritesWithRecentFiles
+    actionModel: externalFavoritesModel
 
     // Handle item activation
     Connections {

@@ -61,6 +61,7 @@ FavoritesGridView {
     // Grid configuration
     width: parent.width
     model: appsWithRecentFiles
+    actionModel: frequentAppsModel
 
     // Get favorites snapshot for change detection
     function getFavoritesSnapshot() {
@@ -280,15 +281,20 @@ FavoritesGridView {
 
     // Show recent files menu
     readonly property bool jumpOpen: jumpList.opened
+    property int jumpIndex: -1
 
     JumpListFlyout {
         id: jumpList
         onItemTriggered: recentsGrid.menuClosed()
+        onActionRequested: (actionId, actionArgument) => {
+            if (recentsGrid.jumpIndex >= 0) recentsGrid.runAction(recentsGrid.jumpIndex, actionId, actionArgument);
+        }
     }
 
     function showRecentFilesMenu(index, visualParent) {
         const item = appsWithRecentFiles.get(index);
         if (!item || !item.launcherUrl) return;
+        jumpIndex = index;
         if (jumpList.opened) jumpList.close();
         const result = getRecentFilesHelper.getRecentFilesActions(item.launcherUrl, recentsGrid);
         if (!result || result.count <= 0) return;
