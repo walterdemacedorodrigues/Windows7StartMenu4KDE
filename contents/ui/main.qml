@@ -100,11 +100,19 @@ PlasmoidItem {
             anchors.fill: parent
             z: -1
             acceptedButtons: Qt.RightButton
-            onClicked: mouse => appletContextMenu.popup(root, mouse.x, mouse.y)
+            onClicked: mouse => {
+                // Lets the shell refresh the applet actions, as it does for the panel menu.
+                Plasmoid.contextualActionsAboutToShow();
+                appletContextMenu.popup(root, mouse.x, mouse.y);
+            }
         }
 
         PlasmaComponents3.Menu {
             id: appletContextMenu
+
+            // Same labels the panel menu shows, straight from the applet's own actions; their icon names never reach QML, so those stay local.
+            readonly property var configureAction: Plasmoid.internalAction("configure")
+            readonly property var alternativesAction: Plasmoid.internalAction("alternatives")
 
             PlasmaComponents3.MenuItem {
                 text: i18n("Edit Applications…")
@@ -116,13 +124,21 @@ PlasmoidItem {
             PlasmaComponents3.MenuSeparator {}
 
             PlasmaComponents3.MenuItem {
-                text: i18n("Configure Start Menu…")
+                text: appletContextMenu.configureAction ? appletContextMenu.configureAction.text : ""
                 icon.name: "configure"
-                enabled: Plasmoid.immutability === PlasmaCore.Types.Mutable
-                onTriggered: {
-                    const action = Plasmoid.internalAction("configure");
-                    if (action) action.trigger();
-                }
+                visible: appletContextMenu.configureAction !== null && appletContextMenu.configureAction.visible
+                height: visible ? implicitHeight : 0
+                enabled: appletContextMenu.configureAction !== null && appletContextMenu.configureAction.enabled
+                onTriggered: appletContextMenu.configureAction.trigger()
+            }
+
+            PlasmaComponents3.MenuItem {
+                text: appletContextMenu.alternativesAction ? appletContextMenu.alternativesAction.text : ""
+                icon.name: "exchange-positions"
+                visible: appletContextMenu.alternativesAction !== null && appletContextMenu.alternativesAction.visible
+                height: visible ? implicitHeight : 0
+                enabled: appletContextMenu.alternativesAction !== null && appletContextMenu.alternativesAction.enabled
+                onTriggered: appletContextMenu.alternativesAction.trigger()
             }
         }
 
