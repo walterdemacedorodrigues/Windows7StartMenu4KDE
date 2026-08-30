@@ -4,11 +4,11 @@ With KDE Frameworks v5.37 and above, translations are bundled with the `*.plasmo
 
 ## Install Translations
 
-Go to `~/.local/share/plasma/plasmoids/org.kde.plasma.dittomenu/translate/` and run `sh ./build --restartplasma`.
+Go to `~/.local/share/plasma/plasmoids/Windows7StartMenu4KDE/translate/` and run `sh ./build --restartplasma`.
 
 ## New Translations
 
-1. Fill out [`template.pot`](template.pot) with your translations then open a [new issue](https://github.com/Zren/plasma-applet-tiledmenu/issues/new), name the file `spanish.txt`, attach the txt file to the issue (drag and drop).
+1. Fill out [`template.pot`](template.pot) with your translations then open a [new issue](https://github.com/walterdemacedorodrigues/Windows7StartMenu4KDE/issues/new), name the file `spanish.txt`, attach the txt file to the issue (drag and drop).
 
 Or if you know how to make a pull request
 
@@ -35,11 +35,13 @@ Or if you know how to make a pull request
 ## Status
 |  Locale  |  Lines  | % Done|
 |----------|---------|-------|
-| Template |      30 |       |
-| fr       |   29/30 |   96% |
-| ko       |   27/30 |   90% |
-| nl       |   20/30 |   66% |
-| pl       |   22/30 |   73% |
-| pt_BR    |   30/30 |  100% |
-| ru       |   30/30 |  100% |
-| tr       |   23/30 |   76% |
+| Template |      93 |       |
+| es       |   92/93 |   98% |
+| fr       |   92/93 |   98% |
+| he       |   92/93 |   98% |
+| ko       |   92/93 |   98% |
+| nl       |   92/93 |   98% |
+| pl       |   92/93 |   98% |
+| pt_BR    |   92/93 |   98% |
+| ru       |   92/93 |   98% |
+| tr       |   92/93 |   98% |

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: https://store.kde.org/p/1312669/\n"
-"POT-Creation-Date: 2023-05-01 16:59-0300\n"
+"Project-Id-Version: Windows7StartMenu4KDE\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-30 13:31-0300\n"
 "PO-Revision-Date: 2021-09-29 09:43+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15,45 +15,89 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../metadata.desktop
-msgid "Ditto Menu"
-msgstr "Ditto 메뉴"
-
-#: ../metadata.desktop
-msgid "A configurable launcher menu"
-msgstr "프로그램 실행기"
-
-#: ../contents/code/tools.js
-msgid "Remove from Favorites"
-msgstr "즐겨찾기에서 제거"
-
-#: ../contents/code/tools.js
-msgid "Add to Favorites"
-msgstr "즐겨찾기에 추가"
-
-#: ../contents/code/tools.js
-msgid "On All Activities"
-msgstr "모든 활동"
-
-#: ../contents/code/tools.js
-msgid "On The Current Activity"
-msgstr "현재 활동만"
-
-#: ../contents/code/tools.js
-msgid "Show In Favorites"
-msgstr "즐겨찾기에 표시"
+msgid "Windows7StartMenu4KDE"
+msgstr ""
 
 #: ../contents/config/config.qml
 msgid "General"
 msgstr "일반"
 
+#: ../contents/config/config.qml
+msgid "Appearance"
+msgstr "모양"
+
+#: ../contents/config/config.qml
+msgid "Side Panel"
+msgstr "측면 패널"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/FavoritesRow.qml
+msgid "Remove from Favorites"
+msgstr "즐겨찾기에서 제거"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/RecentsRow.qml
+msgid "Add to Favorites"
+msgstr "즐겨찾기에 추가"
+
+#: ../contents/ui/code/tools.js
+msgid "On All Activities"
+msgstr "모든 활동"
+
+#: ../contents/ui/code/tools.js
+msgid "On the Current Activity"
+msgstr "현재 활동에서"
+
+#: ../contents/ui/code/tools.js
+msgid "Show in Favorites"
+msgstr "즐겨찾기에 표시"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid ""
+"A tint is painted over the theme background. At zero the theme is left "
+"untouched, and at one hundred the area is solid."
+msgstr ""
+"테마 배경 위에 색조를 덧칠합니다. 0이면 테마를 그대로 두고, 100이면 해당 영"
+"역이 완전히 불투명해집니다."
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Whole menu opacity:"
+msgstr "전체 메뉴 불투명도:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Theme default"
+msgstr "테마 기본값"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Use the theme background colour"
+msgstr "테마 배경색 사용"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Menu colour:"
+msgstr "메뉴 색상:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list opacity:"
+msgstr "프로그램 목록 불투명도:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list colour:"
+msgstr "프로그램 목록 색상:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel opacity:"
+msgstr "측면 패널 불투명도:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel colour:"
+msgstr "측면 패널 색상:"
+
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Icon:"
-msgstr "아이콘:"
+msgid "System icon:"
+msgstr "시스템 아이콘:"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Open icon chooser dialog"
-msgid "Choose..."
-msgstr "선택..."
+msgid "Choose…"
+msgstr "선택…"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Reset icon to default"
@@ -61,77 +105,298 @@ msgid "Clear Icon"
 msgstr "아이콘 초기화"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show favorites first"
-msgstr "즐겨찾기 먼저 표시"
+msgid "Use the Windows orb instead of a system icon"
+msgstr "시스템 아이콘 대신 Windows 오브 사용"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Menu position"
-msgstr ""
+msgid "Orb texture:"
+msgstr "오브 텍스처:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Default"
-msgstr "기본"
+msgid "Orb width:"
+msgstr "오브 너비:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center"
-msgstr "가운데"
+msgid "Texture size"
+msgstr "텍스처 크기"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center bottom"
-msgstr "가운데 밑"
+msgid "Icons:"
+msgstr "아이콘:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show labels in two lines"
-msgstr "라벨 두 줄로 표시"
+msgid "Prefer Windows style icons in the side panel"
+msgstr "측면 패널에서 Windows 스타일 아이콘 사용"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of columns"
-msgstr ""
+msgid "Draw application categories with a plain folder icon"
+msgstr "프로그램 분류를 기본 폴더 아이콘으로 표시"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of rows"
-msgstr ""
+msgid "All Programs:"
+msgstr "모든 프로그램:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Browse categories as an expandable tree"
+msgstr "분류를 펼칠 수 있는 트리로 탐색"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Highlight newly installed applications"
+msgstr "새로 설치한 프로그램 강조"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show favorites before recently used applications"
+msgstr "최근 사용한 프로그램보다 즐겨찾기를 먼저 표시"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Recents:"
+msgstr "최근 항목:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show recently used applications"
+msgstr "최근 사용한 프로그램 표시"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Applications listed:"
+msgstr "표시할 프로그램 수:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Documents per jump list:"
+msgstr "점프 목록당 문서 수:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Flyout hover delay:"
+msgstr "플라이아웃 표시 지연 시간:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Label the home entry with the full user name"
+msgstr "홈 항목에 사용자 전체 이름 표시"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Search bookmarks and files as well as applications"
+msgstr "프로그램뿐만 아니라 북마크와 파일도 검색"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgid "Unhide all hidden applications"
 msgstr "모든 숨겨진 프로그램 복구"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Unhidden!"
-msgstr "복구됨!"
+msgid "All applications are visible again."
+msgstr "모든 프로그램이 다시 표시됩니다."
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Places"
+msgstr "위치"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Libraries"
+msgstr "라이브러리"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "System"
+msgstr "시스템"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "Recent Files"
+msgstr "최근 파일"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "No recent items"
+msgstr "최근 항목 없음"
 
 #: ../contents/ui/main.qml
-msgid "Edit Applications..."
+msgid "Edit Applications…"
 msgstr "프로그램 편집..."
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "System Preferences"
-msgstr "시스템 설정"
+#: ../contents/ui/main.qml
+msgid "All Applications"
+msgstr "모든 프로그램"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "User Home"
-msgstr "사용자 홈"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Lock Screen"
-msgstr "잠금"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Leave ..."
-msgstr "떠나기..."
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Hi, "
-msgstr "안녕하세요, "
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Type here to search ..."
-msgstr "검색..."
-
-#: ../contents/ui/MenuRepresentation.qml
+#: ../contents/ui/main.qml
 msgid "Favorites"
 msgstr "즐겨찾기"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "All apps"
-msgstr "모든 프로그램"
+#: ../contents/ui/MenuContent.qml ../contents/ui/parts/SearchBar.qml
+msgid "Type here to search…"
+msgstr "여기에 입력하여 검색…"
+
+#: ../contents/ui/OrbPicker.qml
+msgid "PNG images (*.png)"
+msgstr "PNG 이미지 (*.png)"
+
+#: ../contents/ui/OrbPicker.qml
+msgid ""
+"ClassicShell and OpenShell orb textures are supported. The image must stack "
+"the normal, hovered and pressed frames vertically."
+msgstr ""
+"ClassicShell과 OpenShell의 오브 텍스처를 지원합니다. 이미지에는 기본, 마우"
+"스 올림, 누름 상태가 세로로 쌓여 있어야 합니다."
+
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Open file chooser dialog"
+msgid "Choose…"
+msgstr "선택…"
+
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Reset to the bundled orb"
+msgid "Reset"
+msgstr "초기화"
+
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "User Settings"
+msgstr "사용자 설정"
+
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "Click to open user account settings"
+msgstr "누르면 사용자 계정 설정을 엽니다"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Restart"
+msgstr "다시 시작"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Turn Off Screen"
+msgstr "화면 끄기"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Lock Screen"
+msgstr "잠금"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Sleep"
+msgstr "절전"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Hibernate"
+msgstr "최대 절전 모드"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Log Out"
+msgstr "로그아웃"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Shutdown"
+msgstr "시스템 종료"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid ""
+"Closes all open programs, shuts down the system and turns off your computer."
+msgstr ""
+"열려 있는 모든 프로그램을 닫고 시스템을 종료한 뒤 컴퓨터의 전원을 끕니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open your personal folder."
+msgstr "개인 폴더를 엽니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Documents"
+msgstr "문서"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access letters, reports, notes and other kinds of documents."
+msgstr "편지, 보고서, 메모 등 여러 종류의 문서에 접근합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Pictures"
+msgstr "사진"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and organize digital pictures."
+msgstr "디지털 사진을 보고 정리합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Music"
+msgstr "음악"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play music and other audio files."
+msgstr "음악과 다른 오디오 파일을 재생합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Videos"
+msgstr "비디오"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Watch home movies and other digital videos."
+msgstr "홈 비디오와 다른 디지털 동영상을 감상합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Downloads"
+msgstr "다운로드"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find Internet downloads and links to favorite websites."
+msgstr "인터넷에서 내려받은 파일과 즐겨찾는 웹 사이트 링크를 찾습니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Games"
+msgstr "게임"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play and manage games on your computer."
+msgstr "컴퓨터의 게임을 즐기고 관리합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Recent Items"
+msgstr "최근 항목"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open documents you worked on recently."
+msgstr "최근에 작업한 문서를 엽니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Computer"
+msgstr "컴퓨터"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "See the disk drives and other hardware connected to your computer."
+msgstr "컴퓨터에 연결된 디스크 드라이브와 다른 하드웨어를 봅니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Network"
+msgstr "네트워크"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access the computers and devices that are on your network."
+msgstr "네트워크에 있는 컴퓨터와 장치에 접근합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Control Panel"
+msgstr "제어판"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Change settings and customize the functionality of your computer."
+msgstr "설정을 변경하고 컴퓨터의 기능을 사용자 지정합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Devices and Printers"
+msgstr "장치 및 프린터"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and manage devices, printers and print jobs."
+msgstr "장치, 프린터, 인쇄 작업을 보고 관리합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Default Programs"
+msgstr "기본 프로그램"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Choose default programs for web browsing, e-mail and other activities."
+msgstr "웹 검색, 전자 우편 등에 사용할 기본 프로그램을 선택합니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Help and Support"
+msgstr "도움말 및 지원"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid ""
+"Find help topics, tutorials, troubleshooting and other support services."
+msgstr "도움말 항목, 자습서, 문제 해결 및 기타 지원 서비스를 찾습니다."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Run…"
+msgstr "실행…"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open a program, folder, document or web site."
+msgstr "프로그램, 폴더, 문서 또는 웹 사이트를 엽니다."

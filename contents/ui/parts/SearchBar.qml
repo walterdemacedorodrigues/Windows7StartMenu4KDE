@@ -74,7 +74,7 @@ Rectangle {
             verticalCenter: parent.verticalCenter
         }
 
-        placeholderText: i18n("🔍 Type here to search ...")
+        placeholderText: "🔍 " + i18n("Type here to search…")
 
         onTextChanged: {
             searchBar.isSearching = (text !== "");

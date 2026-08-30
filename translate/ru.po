@@ -1,14 +1,14 @@
-# Translation of dittomenu in pl
+# Translation of Windows7StartMenu4KDE in ru
 # Copyright (C) 2022
-# This file is distributed under the same license as the dittomenu package.
+# This file is distributed under the same license as the Windows7StartMenu4KDE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR..
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: dittomenu\n"
-"Report-Msgid-Bugs-To: https://store.kde.org/p/1312669/\n"
-"POT-Creation-Date: 2023-05-01 16:59-0300\n"
+"Project-Id-Version: Windows7StartMenu4KDE\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-30 13:31-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Edward Karate <edward.karate@ya.ru>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,45 +18,85 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../metadata.desktop
-msgid "Ditto Menu"
-msgstr "Ditto Menu"
-
-#: ../metadata.desktop
-msgid "A configurable launcher menu"
-msgstr "Настраиваемое меню приложений"
-
-#: ../contents/code/tools.js
-msgid "Remove from Favorites"
-msgstr "Убрать из избранного"
-
-#: ../contents/code/tools.js
-msgid "Add to Favorites"
-msgstr "Добавить в избранное"
-
-#: ../contents/code/tools.js
-msgid "On All Activities"
-msgstr "По всем видам деятельности"
-
-#: ../contents/code/tools.js
-msgid "On The Current Activity"
-msgstr "О текущей деятельности"
-
-#: ../contents/code/tools.js
-msgid "Show In Favorites"
-msgstr "Показать в Избранном"
+msgid "Windows7StartMenu4KDE"
+msgstr ""
 
 #: ../contents/config/config.qml
 msgid "General"
 msgstr "Общие"
 
+#: ../contents/config/config.qml
+msgid "Appearance"
+msgstr "Внешний вид"
+
+#: ../contents/config/config.qml
+msgid "Side Panel"
+msgstr "Боковая панель"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/FavoritesRow.qml
+msgid "Remove from Favorites"
+msgstr "Убрать из избранного"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/RecentsRow.qml
+msgid "Add to Favorites"
+msgstr "Добавить в избранное"
+
+#: ../contents/ui/code/tools.js
+msgid "On All Activities"
+msgstr "По всем видам деятельности"
+
+#: ../contents/ui/code/tools.js
+msgid "On the Current Activity"
+msgstr "В текущем виде деятельности"
+
+#: ../contents/ui/code/tools.js
+msgid "Show in Favorites"
+msgstr "Показать в избранном"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "A tint is painted over the theme background. At zero the theme is left untouched, and at one hundred the area is solid."
+msgstr "Поверх фона темы наносится оттенок. При нуле тема остаётся нетронутой, при ста область становится полностью непрозрачной."
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Whole menu opacity:"
+msgstr "Непрозрачность всего меню:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Theme default"
+msgstr "Как в теме"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Use the theme background colour"
+msgstr "Использовать цвет фона темы"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Menu colour:"
+msgstr "Цвет меню:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list opacity:"
+msgstr "Непрозрачность списка приложений:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list colour:"
+msgstr "Цвет списка приложений:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel opacity:"
+msgstr "Непрозрачность боковой панели:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel colour:"
+msgstr "Цвет боковой панели:"
+
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Icon:"
-msgstr "Значок"
+msgid "System icon:"
+msgstr "Системный значок:"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Open icon chooser dialog"
-msgid "Choose..."
-msgstr "Выбрать..."
+msgid "Choose…"
+msgstr "Выбрать…"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Reset icon to default"
@@ -64,120 +104,291 @@ msgid "Clear Icon"
 msgstr "Очистить значок"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show favorites first"
-msgstr "Сначала показать избранное"
+msgid "Use the Windows orb instead of a system icon"
+msgstr "Использовать сферу Windows вместо системного значка"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Menu position"
-msgstr "Положение меню"
+msgid "Orb texture:"
+msgstr "Текстура сферы:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Default"
-msgstr "По умолчанию"
+msgid "Orb width:"
+msgstr "Ширина сферы:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center"
-msgstr "Центр"
+msgid "Texture size"
+msgstr "Размер текстуры"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center bottom"
-msgstr "Снизу по центру"
+msgid "Icons:"
+msgstr "Значки:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show labels in two lines"
-msgstr "Отображать метки в две строки"
+msgid "Prefer Windows style icons in the side panel"
+msgstr "Использовать значки в стиле Windows на боковой панели"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of columns"
-msgstr "Количество колонок"
+msgid "Draw application categories with a plain folder icon"
+msgstr "Показывать категории приложений обычным значком папки"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of rows"
-msgstr "Количество строк"
+msgid "All Programs:"
+msgstr "Все программы:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Browse categories as an expandable tree"
+msgstr "Просматривать категории в виде раскрывающегося дерева"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Highlight newly installed applications"
+msgstr "Выделять недавно установленные приложения"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show favorites before recently used applications"
+msgstr "Показывать избранное перед недавно использованными приложениями"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Recents:"
+msgstr "Недавние:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show recently used applications"
+msgstr "Показывать недавно использованные приложения"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Applications listed:"
+msgstr "Число приложений в списке:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Documents per jump list:"
+msgstr "Число документов в списке переходов:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Flyout hover delay:"
+msgstr "Задержка появления всплывающего меню:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Label the home entry with the full user name"
+msgstr "Показывать полное имя пользователя в личной записи"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Search bookmarks and files as well as applications"
+msgstr "Искать закладки и файлы, а не только приложения"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgid "Unhide all hidden applications"
 msgstr "Показать все скрытые приложения"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Unhidden!"
-msgstr "Показаны!"
+msgid "All applications are visible again."
+msgstr "Все приложения снова видны."
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Places"
+msgstr "Точки входа"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Libraries"
+msgstr "Библиотеки"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "System"
+msgstr "Система"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "Recent Files"
+msgstr "Недавние файлы"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "No recent items"
+msgstr "Нет недавних элементов"
 
 #: ../contents/ui/main.qml
-msgid "Edit Applications..."
+msgid "Edit Applications…"
 msgstr "Редактировать меню..."
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "System Preferences"
-msgstr "Параметры системы"
+#: ../contents/ui/main.qml
+msgid "All Applications"
+msgstr "Все приложения"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "User Home"
-msgstr "Домашняя папка"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Lock Screen"
-msgstr "Заблокировать"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Leave ..."
-msgstr "Выход ..."
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Hi, "
-msgstr "Привет, "
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Type here to search ..."
-msgstr "Введите текст для поиска..."
-
-#: ../contents/ui/MenuRepresentation.qml
+#: ../contents/ui/main.qml
 msgid "Favorites"
 msgstr "Избранное"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "All apps"
-msgstr "Все приложения"
+#: ../contents/ui/MenuContent.qml ../contents/ui/parts/SearchBar.qml
+msgid "Type here to search…"
+msgstr "Введите текст для поиска…"
 
-#~ msgctxt "@action"
-#~ msgid "Lock Screen"
-#~ msgstr "Заблокировать"
+#: ../contents/ui/OrbPicker.qml
+msgid "PNG images (*.png)"
+msgstr "Изображения PNG (*.png)"
 
-#~ msgid "Behavior"
-#~ msgstr "Поведение"
+#: ../contents/ui/OrbPicker.qml
+msgid "ClassicShell and OpenShell orb textures are supported. The image must stack the normal, hovered and pressed frames vertically."
+msgstr "Поддерживаются текстуры сферы из ClassicShell и OpenShell. Изображение должно содержать расположенные по вертикали кадры обычного состояния, наведения и нажатия."
 
-#~ msgid "Show applications as:"
-#~ msgstr "Показывать приложения в виде:"
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Open file chooser dialog"
+msgid "Choose…"
+msgstr "Выбрать…"
 
-#~ msgid "Name only"
-#~ msgstr "Только имя"
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Reset to the bundled orb"
+msgid "Reset"
+msgstr "Сбросить"
 
-#~ msgid "Description only"
-#~ msgstr "Только описание"
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "User Settings"
+msgstr "Параметры пользователя"
 
-#~ msgid "Name (Description)"
-#~ msgstr "Имя (Описание)"
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "Click to open user account settings"
+msgstr "Нажмите, чтобы открыть параметры учётной записи"
 
-#~ msgid "Description (Name)"
-#~ msgstr "Описание (Имя)"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Restart"
+msgstr "Перезагрузить"
 
-#~ msgid "Menu position:"
-#~ msgstr "Позиция меню"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Turn Off Screen"
+msgstr "Выключить экран"
 
-#~ msgid "Search"
-#~ msgstr "Поиск"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Lock Screen"
+msgstr "Заблокировать"
 
-#~ msgid "Expand search to bookmarks, files and emails"
-#~ msgstr "Расширить поиск по закладкам, файлам и почте"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Sleep"
+msgstr "Ждущий режим"
 
-#~ msgid "Show user icon"
-#~ msgstr "Показать иконку пользователя"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Hibernate"
+msgstr "Спящий режим"
 
-#~ msgid "Grid"
-#~ msgstr "Сетка"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Log Out"
+msgstr "Выйти из системы"
 
-#~ msgid "Number of columns in grid"
-#~ msgstr "Количество колонок в сетке"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Shutdown"
+msgstr "Выключить"
 
-#~ msgid "Number of rows in grid"
-#~ msgstr "Количество строк в сетке"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Closes all open programs, shuts down the system and turns off your computer."
+msgstr "Закрывает все открытые программы, завершает работу системы и выключает питание компьютера."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open your personal folder."
+msgstr "Открыть вашу личную папку."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Documents"
+msgstr "Документы"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access letters, reports, notes and other kinds of documents."
+msgstr "Доступ к письмам, отчётам, заметкам и другим документам."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Pictures"
+msgstr "Изображения"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and organize digital pictures."
+msgstr "Просмотр и упорядочивание цифровых изображений."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Music"
+msgstr "Музыка"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play music and other audio files."
+msgstr "Воспроизведение музыки и других звуковых файлов."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Videos"
+msgstr "Видео"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Watch home movies and other digital videos."
+msgstr "Просмотр домашнего видео и других цифровых записей."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Downloads"
+msgstr "Загрузки"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find Internet downloads and links to favorite websites."
+msgstr "Поиск загрузок из Интернета и ссылок на избранные сайты."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Games"
+msgstr "Игры"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play and manage games on your computer."
+msgstr "Игры на вашем компьютере и управление ими."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Recent Items"
+msgstr "Недавние документы"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open documents you worked on recently."
+msgstr "Открыть документы, с которыми вы недавно работали."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Computer"
+msgstr "Компьютер"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "See the disk drives and other hardware connected to your computer."
+msgstr "Просмотр дисков и другого оборудования, подключённого к компьютеру."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Network"
+msgstr "Сеть"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access the computers and devices that are on your network."
+msgstr "Доступ к компьютерам и устройствам в вашей сети."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Control Panel"
+msgstr "Панель управления"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Change settings and customize the functionality of your computer."
+msgstr "Изменение параметров и настройка работы компьютера."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Devices and Printers"
+msgstr "Устройства и принтеры"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and manage devices, printers and print jobs."
+msgstr "Просмотр устройств, принтеров и заданий печати и управление ими."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Default Programs"
+msgstr "Программы по умолчанию"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Choose default programs for web browsing, e-mail and other activities."
+msgstr "Выбор программ по умолчанию для просмотра веб-страниц, электронной почты и других задач."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Help and Support"
+msgstr "Справка и поддержка"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find help topics, tutorials, troubleshooting and other support services."
+msgstr "Поиск разделов справки, учебников, средств устранения неполадок и других служб поддержки."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Run…"
+msgstr "Выполнить…"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open a program, folder, document or web site."
+msgstr "Открыть программу, папку, документ или веб-сайт."

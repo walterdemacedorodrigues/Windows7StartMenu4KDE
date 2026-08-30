@@ -176,7 +176,7 @@ Item {
         },
         {
             name: "Run",
-            itemText: i18n("Run..."),
+            itemText: i18n("Run…"),
             description: i18n("Open a program, folder, document or web site."),
             itemIcon: "krunner",
             itemIconFallback: "system-run",

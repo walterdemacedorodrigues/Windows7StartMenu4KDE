@@ -1,14 +1,14 @@
-# Translation of dittomenu in tr
+# Translation of Windows7StartMenu4KDE in tr
 # Copyright (C) 2022
-# This file is distributed under the same license as the dittomenu package.
+# This file is distributed under the same license as the Windows7StartMenu4KDE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: dittomenu\n"
-"Report-Msgid-Bugs-To: https://store.kde.org/p/1312669/\n"
-"POT-Creation-Date: 2023-05-01 16:59-0300\n"
+"Project-Id-Version: Windows7StartMenu4KDE\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-30 13:31-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,45 +21,85 @@ msgstr ""
 "X-Source-Language: C\n"
 
 #: ../metadata.desktop
-msgid "Ditto Menu"
-msgstr "Ditto Menu"
-
-#: ../metadata.desktop
-msgid "A configurable launcher menu"
-msgstr "Yapılandırılabilir bir başlatıcı menüsü"
-
-#: ../contents/code/tools.js
-msgid "Remove from Favorites"
-msgstr "Favorilerden Çıkar"
-
-#: ../contents/code/tools.js
-msgid "Add to Favorites"
-msgstr "Favorilerden Ekle"
-
-#: ../contents/code/tools.js
-msgid "On All Activities"
-msgstr "Tüm Etkinliklerde"
-
-#: ../contents/code/tools.js
-msgid "On The Current Activity"
-msgstr "Mevcut Etkinlik Üzerine"
-
-#: ../contents/code/tools.js
-msgid "Show In Favorites"
-msgstr "Favorilerde Göster"
+msgid "Windows7StartMenu4KDE"
+msgstr ""
 
 #: ../contents/config/config.qml
 msgid "General"
 msgstr "Genel"
 
+#: ../contents/config/config.qml
+msgid "Appearance"
+msgstr "Görünüm"
+
+#: ../contents/config/config.qml
+msgid "Side Panel"
+msgstr "Yan Panel"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/FavoritesRow.qml
+msgid "Remove from Favorites"
+msgstr "Favorilerden Çıkar"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/RecentsRow.qml
+msgid "Add to Favorites"
+msgstr "Favorilerden Ekle"
+
+#: ../contents/ui/code/tools.js
+msgid "On All Activities"
+msgstr "Tüm Etkinliklerde"
+
+#: ../contents/ui/code/tools.js
+msgid "On the Current Activity"
+msgstr "Geçerli Etkinlikte"
+
+#: ../contents/ui/code/tools.js
+msgid "Show in Favorites"
+msgstr "Favorilerde Göster"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "A tint is painted over the theme background. At zero the theme is left untouched, and at one hundred the area is solid."
+msgstr "Tema arka planının üzerine bir renk tonu uygulanır. Sıfırda tema olduğu gibi kalır, yüzde ise alan tümüyle donuk olur."
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Whole menu opacity:"
+msgstr "Tüm menünün matlığı:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Theme default"
+msgstr "Tema öntanımlısı"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Use the theme background colour"
+msgstr "Temanın arka plan rengini kullan"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Menu colour:"
+msgstr "Menü rengi:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list opacity:"
+msgstr "Uygulama listesinin matlığı:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list colour:"
+msgstr "Uygulama listesinin rengi:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel opacity:"
+msgstr "Yan panelin matlığı:"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel colour:"
+msgstr "Yan panelin rengi:"
+
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Icon:"
-msgstr "Sİmge:"
+msgid "System icon:"
+msgstr "Sistem simgesi:"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Open icon chooser dialog"
-msgid "Choose..."
-msgstr "Seçmek..."
+msgid "Choose…"
+msgstr "Seç…"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Reset icon to default"
@@ -67,120 +107,291 @@ msgid "Clear Icon"
 msgstr "Simgeyi Temizle"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show favorites first"
-msgstr "Önce favorileri göster"
+msgid "Use the Windows orb instead of a system icon"
+msgstr "Sistem simgesi yerine Windows küresini kullan"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Menu position"
-msgstr ""
+msgid "Orb texture:"
+msgstr "Küre dokusu:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Default"
-msgstr "Varsayılan"
+msgid "Orb width:"
+msgstr "Küre genişliği:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center"
-msgstr "Orta"
+msgid "Texture size"
+msgstr "Doku boyutu"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center bottom"
-msgstr "Orta alt"
+msgid "Icons:"
+msgstr "Simgeler:"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show labels in two lines"
-msgstr "Etiketleri iki satırda göster"
+msgid "Prefer Windows style icons in the side panel"
+msgstr "Yan panelde Windows stili simgeleri yeğle"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of columns"
-msgstr ""
+msgid "Draw application categories with a plain folder icon"
+msgstr "Uygulama kategorilerini düz bir klasör simgesiyle çiz"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of rows"
-msgstr ""
+msgid "All Programs:"
+msgstr "Tüm Programlar:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Browse categories as an expandable tree"
+msgstr "Kategorilere genişletilebilir bir ağaç olarak göz at"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Highlight newly installed applications"
+msgstr "Yeni kurulan uygulamaları vurgula"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show favorites before recently used applications"
+msgstr "Favorileri son kullanılan uygulamalardan önce göster"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Recents:"
+msgstr "Son kullanılanlar:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show recently used applications"
+msgstr "Son kullanılan uygulamaları göster"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Applications listed:"
+msgstr "Listelenen uygulama sayısı:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Documents per jump list:"
+msgstr "Atlama listesi başına belge sayısı:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Flyout hover delay:"
+msgstr "Açılır menü gecikmesi:"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Label the home entry with the full user name"
+msgstr "Kişisel girdiyi kullanıcının tam adıyla etiketle"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Search bookmarks and files as well as applications"
+msgstr "Uygulamaların yanı sıra yer imlerini ve dosyaları da ara"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgid "Unhide all hidden applications"
 msgstr "Tüm gizli uygulamaları göster"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Unhidden!"
-msgstr "Gizli!"
+msgid "All applications are visible again."
+msgstr "Tüm uygulamalar yeniden görünür durumda."
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Places"
+msgstr "Yerler"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Libraries"
+msgstr "Kitaplıklar"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "System"
+msgstr "Sistem"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "Recent Files"
+msgstr "Son Dosyalar"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "No recent items"
+msgstr "Son kullanılan öge yok"
 
 #: ../contents/ui/main.qml
-msgid "Edit Applications..."
+msgid "Edit Applications…"
 msgstr "Uygulamaları Düzenle..."
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "System Preferences"
-msgstr "Sistem Tercihleri"
+#: ../contents/ui/main.qml
+msgid "All Applications"
+msgstr "Tüm Uygulamalar"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "User Home"
-msgstr "Kullanıcı Ana Sayfası"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Lock Screen"
-msgstr ""
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Leave ..."
-msgstr ""
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Hi, "
-msgstr "Merhaba, "
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Type here to search ..."
-msgstr "Aramak için buraya yazınız ..."
-
-#: ../contents/ui/MenuRepresentation.qml
+#: ../contents/ui/main.qml
 msgid "Favorites"
-msgstr ""
+msgstr "Favoriler"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "All apps"
-msgstr ""
+#: ../contents/ui/MenuContent.qml ../contents/ui/parts/SearchBar.qml
+msgid "Type here to search…"
+msgstr "Aramak için buraya yazın…"
 
-#~ msgctxt "@action"
-#~ msgid "Lock Screen"
-#~ msgstr "Kilit Ekranı"
+#: ../contents/ui/OrbPicker.qml
+msgid "PNG images (*.png)"
+msgstr "PNG görselleri (*.png)"
 
-#~ msgid "Behavior"
-#~ msgstr "Davranış"
+#: ../contents/ui/OrbPicker.qml
+msgid "ClassicShell and OpenShell orb textures are supported. The image must stack the normal, hovered and pressed frames vertically."
+msgstr "ClassicShell ve OpenShell küre dokuları desteklenir. Görsel; normal, üzerine gelinmiş ve basılmış kareleri dikey olarak içermelidir."
 
-#~ msgid "Show applications as:"
-#~ msgstr "Uygulamaları şu şekilde göster:"
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Open file chooser dialog"
+msgid "Choose…"
+msgstr "Seç…"
 
-#~ msgid "Name only"
-#~ msgstr "Sadece isim"
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Reset to the bundled orb"
+msgid "Reset"
+msgstr "Sıfırla"
 
-#~ msgid "Description only"
-#~ msgstr "Yalnızca açıklama"
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "User Settings"
+msgstr "Kullanıcı Ayarları"
 
-#~ msgid "Name (Description)"
-#~ msgstr "İsim (Açıklama)"
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "Click to open user account settings"
+msgstr "Kullanıcı hesabı ayarlarını açmak için tıklayın"
 
-#~ msgid "Description (Name)"
-#~ msgstr "Açıklama (İsim)"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Restart"
+msgstr "Yeniden Başlat"
 
-#~ msgid "Menu position:"
-#~ msgstr "Menü konumu:"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Turn Off Screen"
+msgstr "Ekranı Kapat"
 
-#~ msgid "Search"
-#~ msgstr "Ara"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Lock Screen"
+msgstr "Ekranı Kilitle"
 
-#~ msgid "Expand search to bookmarks, files and emails"
-#~ msgstr "Aramayı yer imlerine, dosyalara ve e-postalara genişletin"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Sleep"
+msgstr "Uyku"
 
-#~ msgid "Show user icon"
-#~ msgstr "Kullanıcı simgesini göster"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Hibernate"
+msgstr "Hazırda Beklet"
 
-#~ msgid "Grid"
-#~ msgstr "Izgara"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Log Out"
+msgstr "Oturumu Kapat"
 
-#~ msgid "Number of columns in grid"
-#~ msgstr "Izgaradaki sütun sayısı"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Shutdown"
+msgstr "Bilgisayarı Kapat"
 
-#~ msgid "Number of rows in grid"
-#~ msgstr "Izgaradaki satır sayısı"
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Closes all open programs, shuts down the system and turns off your computer."
+msgstr "Açık tüm programları kapatır, sistemi kapatır ve bilgisayarınızın gücünü keser."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open your personal folder."
+msgstr "Kişisel klasörünüzü açar."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Documents"
+msgstr "Belgeler"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access letters, reports, notes and other kinds of documents."
+msgstr "Mektuplara, raporlara, notlara ve diğer belge türlerine erişin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Pictures"
+msgstr "Resimler"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and organize digital pictures."
+msgstr "Dijital resimleri görüntüleyin ve düzenleyin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Music"
+msgstr "Müzik"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play music and other audio files."
+msgstr "Müzik ve diğer ses dosyalarını çalın."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Videos"
+msgstr "Videolar"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Watch home movies and other digital videos."
+msgstr "Ev videolarınızı ve diğer dijital videoları izleyin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Downloads"
+msgstr "İndirilenler"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find Internet downloads and links to favorite websites."
+msgstr "İnternetten indirdiklerinizi ve favori web sitelerine bağlantıları bulun."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Games"
+msgstr "Oyunlar"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play and manage games on your computer."
+msgstr "Bilgisayarınızdaki oyunları oynayın ve yönetin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Recent Items"
+msgstr "Son Ögeler"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open documents you worked on recently."
+msgstr "Son zamanlarda üzerinde çalıştığınız belgeleri açın."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Computer"
+msgstr "Bilgisayar"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "See the disk drives and other hardware connected to your computer."
+msgstr "Bilgisayarınıza bağlı disk sürücülerini ve diğer donanımları görün."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Network"
+msgstr "Ağ"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access the computers and devices that are on your network."
+msgstr "Ağınızdaki bilgisayarlara ve aygıtlara erişin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Control Panel"
+msgstr "Denetim Masası"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Change settings and customize the functionality of your computer."
+msgstr "Ayarları değiştirin ve bilgisayarınızın işleyişini özelleştirin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Devices and Printers"
+msgstr "Aygıtlar ve Yazıcılar"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and manage devices, printers and print jobs."
+msgstr "Aygıtları, yazıcıları ve yazdırma işlerini görüntüleyin ve yönetin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Default Programs"
+msgstr "Öntanımlı Programlar"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Choose default programs for web browsing, e-mail and other activities."
+msgstr "Web'de gezinme, e-posta ve diğer etkinlikler için öntanımlı programları seçin."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Help and Support"
+msgstr "Yardım ve Destek"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find help topics, tutorials, troubleshooting and other support services."
+msgstr "Yardım konularını, öğreticileri, sorun gidermeyi ve diğer destek hizmetlerini bulun."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Run…"
+msgstr "Çalıştır…"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open a program, folder, document or web site."
+msgstr "Bir program, klasör, belge veya web sitesi açın."

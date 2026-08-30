@@ -1,14 +1,14 @@
-# Translation of dittomenu in fr
+# Translation of Windows7StartMenu4KDE in fr
 # Copyright (C) 2023
-# This file is distributed under the same license as the dittomenu package.
+# This file is distributed under the same license as the Windows7StartMenu4KDE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: dittomenu\n"
-"Report-Msgid-Bugs-To: https://store.kde.org/p/1312669/\n"
-"POT-Creation-Date: 2023-05-01 16:59-0300\n"
+"Project-Id-Version: Windows7StartMenu4KDE\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-30 13:31-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: omano\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,45 +18,85 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../metadata.desktop
-msgid "Ditto Menu"
-msgstr "Ditto Menu"
-
-#: ../metadata.desktop
-msgid "A configurable launcher menu"
-msgstr "Un menu de lancement configurable"
-
-#: ../contents/code/tools.js
-msgid "Remove from Favorites"
-msgstr "Enlever des Favoris"
-
-#: ../contents/code/tools.js
-msgid "Add to Favorites"
-msgstr "Ajouter aux Favoris"
-
-#: ../contents/code/tools.js
-msgid "On All Activities"
-msgstr "Sur toutes les Activités"
-
-#: ../contents/code/tools.js
-msgid "On The Current Activity"
-msgstr "Sur l'Activité actuelle"
-
-#: ../contents/code/tools.js
-msgid "Show In Favorites"
-msgstr "Voir dans les Favoris"
+msgid "Windows7StartMenu4KDE"
+msgstr ""
 
 #: ../contents/config/config.qml
 msgid "General"
 msgstr "Général"
 
+#: ../contents/config/config.qml
+msgid "Appearance"
+msgstr "Apparence"
+
+#: ../contents/config/config.qml
+msgid "Side Panel"
+msgstr "Panneau latéral"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/FavoritesRow.qml
+msgid "Remove from Favorites"
+msgstr "Enlever des Favoris"
+
+#: ../contents/ui/code/tools.js ../contents/ui/parts/RecentsRow.qml
+msgid "Add to Favorites"
+msgstr "Ajouter aux Favoris"
+
+#: ../contents/ui/code/tools.js
+msgid "On All Activities"
+msgstr "Sur toutes les Activités"
+
+#: ../contents/ui/code/tools.js
+msgid "On the Current Activity"
+msgstr "Sur l'activité actuelle"
+
+#: ../contents/ui/code/tools.js
+msgid "Show in Favorites"
+msgstr "Afficher dans les favoris"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "A tint is painted over the theme background. At zero the theme is left untouched, and at one hundred the area is solid."
+msgstr "Une teinte est appliquée sur le fond du thème. À zéro, le thème reste intact ; à cent, la zone est totalement opaque."
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Whole menu opacity:"
+msgstr "Opacité de tout le menu :"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Theme default"
+msgstr "Valeur par défaut du thème"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Use the theme background colour"
+msgstr "Utiliser la couleur de fond du thème"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Menu colour:"
+msgstr "Couleur du menu :"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list opacity:"
+msgstr "Opacité de la liste des applications :"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Application list colour:"
+msgstr "Couleur de la liste des applications :"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel opacity:"
+msgstr "Opacité du panneau latéral :"
+
+#: ../contents/ui/ConfigAppearance.qml
+msgid "Side panel colour:"
+msgstr "Couleur du panneau latéral :"
+
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Icon:"
-msgstr "Icône:"
+msgid "System icon:"
+msgstr "Icône du système :"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Open icon chooser dialog"
-msgid "Choose..."
-msgstr "Choisir..."
+msgid "Choose…"
+msgstr "Choisir…"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgctxt "@item:inmenu Reset icon to default"
@@ -64,77 +104,291 @@ msgid "Clear Icon"
 msgstr "Supprimer l'icône"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show favorites first"
-msgstr "Voir les Favoris en premier"
+msgid "Use the Windows orb instead of a system icon"
+msgstr "Utiliser l'orbe Windows au lieu d'une icône du système"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Menu position"
-msgstr "Position du menu"
+msgid "Orb texture:"
+msgstr "Texture de l'orbe :"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Default"
-msgstr "Défaut"
+msgid "Orb width:"
+msgstr "Largeur de l'orbe :"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center"
-msgstr "Centre"
+msgid "Texture size"
+msgstr "Taille de la texture"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Center bottom"
-msgstr "Milieu en bas"
+msgid "Icons:"
+msgstr "Icônes :"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Show labels in two lines"
-msgstr "Voir les étiquettes sur deux lignes"
+msgid "Prefer Windows style icons in the side panel"
+msgstr "Préférer les icônes de style Windows dans le panneau latéral"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of columns"
-msgstr "Nombre de colonnes"
+msgid "Draw application categories with a plain folder icon"
+msgstr "Représenter les catégories d'applications par une simple icône de dossier"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Number of rows"
-msgstr "Nombre de lignes"
+msgid "All Programs:"
+msgstr "Tous les programmes :"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Browse categories as an expandable tree"
+msgstr "Parcourir les catégories sous forme d'arborescence"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Highlight newly installed applications"
+msgstr "Mettre en évidence les applications récemment installées"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show favorites before recently used applications"
+msgstr "Afficher les favoris avant les applications récemment utilisées"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Recents:"
+msgstr "Récents :"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Show recently used applications"
+msgstr "Afficher les applications récemment utilisées"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Applications listed:"
+msgstr "Applications affichées :"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Documents per jump list:"
+msgstr "Documents par liste de raccourcis :"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Flyout hover delay:"
+msgstr "Délai d'ouverture du menu volant :"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Label the home entry with the full user name"
+msgstr "Nommer l'entrée personnelle avec le nom complet de l'utilisateur"
+
+#: ../contents/ui/ConfigGeneral.qml
+msgid "Search bookmarks and files as well as applications"
+msgstr "Rechercher aussi les signets et les fichiers, pas seulement les applications"
 
 #: ../contents/ui/ConfigGeneral.qml
 msgid "Unhide all hidden applications"
 msgstr "Ne plus cacher les applications"
 
 #: ../contents/ui/ConfigGeneral.qml
-msgid "Unhidden!"
-msgstr "Plus cachées!"
+msgid "All applications are visible again."
+msgstr "Toutes les applications sont de nouveau visibles."
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Places"
+msgstr "Emplacements"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "Libraries"
+msgstr "Bibliothèques"
+
+#: ../contents/ui/ConfigSidepanel.qml
+msgid "System"
+msgstr "Système"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "Recent Files"
+msgstr "Fichiers récents"
+
+#: ../contents/ui/functions/GetRecentFiles.qml
+msgid "No recent items"
+msgstr "Aucun élément récent"
 
 #: ../contents/ui/main.qml
-msgid "Edit Applications..."
-msgstr ""
+msgid "Edit Applications…"
+msgstr "Modifier les applications…"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "System Preferences"
-msgstr "Préférences Système"
+#: ../contents/ui/main.qml
+msgid "All Applications"
+msgstr "Toutes les applications"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "User Home"
-msgstr "Dossier Personnel"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Lock Screen"
-msgstr "Verrouiller l'écran"
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Leave ..."
-msgstr "Quitter ..."
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Hi, "
-msgstr "Salut, "
-
-#: ../contents/ui/MenuRepresentation.qml
-msgid "Type here to search ..."
-msgstr "Rechercher ..."
-
-#: ../contents/ui/MenuRepresentation.qml
+#: ../contents/ui/main.qml
 msgid "Favorites"
 msgstr "Favoris"
 
-#: ../contents/ui/MenuRepresentation.qml
-msgid "All apps"
-msgstr "Toutes les applications"
+#: ../contents/ui/MenuContent.qml ../contents/ui/parts/SearchBar.qml
+msgid "Type here to search…"
+msgstr "Saisissez votre recherche ici…"
+
+#: ../contents/ui/OrbPicker.qml
+msgid "PNG images (*.png)"
+msgstr "Images PNG (*.png)"
+
+#: ../contents/ui/OrbPicker.qml
+msgid "ClassicShell and OpenShell orb textures are supported. The image must stack the normal, hovered and pressed frames vertically."
+msgstr "Les textures d'orbe de ClassicShell et d'OpenShell sont prises en charge. L'image doit empiler verticalement les états normal, survolé et enfoncé."
+
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Open file chooser dialog"
+msgid "Choose…"
+msgstr "Choisir…"
+
+#: ../contents/ui/OrbPicker.qml
+msgctxt "@item:inmenu Reset to the bundled orb"
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "User Settings"
+msgstr "Paramètres de l'utilisateur"
+
+#: ../contents/ui/parts/PersonalPortrait.qml
+msgid "Click to open user account settings"
+msgstr "Cliquez pour ouvrir les paramètres du compte utilisateur"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Restart"
+msgstr "Redémarrer"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Turn Off Screen"
+msgstr "Éteindre l'écran"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Lock Screen"
+msgstr "Verrouiller l'écran"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Sleep"
+msgstr "Mettre en veille"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Hibernate"
+msgstr "Hiberner"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Log Out"
+msgstr "Se déconnecter"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Shutdown"
+msgstr "Arrêter"
+
+#: ../contents/ui/parts/PowerButtons.qml
+msgid "Closes all open programs, shuts down the system and turns off your computer."
+msgstr "Ferme tous les programmes ouverts, arrête le système et éteint votre ordinateur."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open your personal folder."
+msgstr "Ouvre votre dossier personnel."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Documents"
+msgstr "Documents"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access letters, reports, notes and other kinds of documents."
+msgstr "Accédez aux lettres, rapports, notes et autres types de documents."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Pictures"
+msgstr "Images"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and organize digital pictures."
+msgstr "Affichez et organisez vos images numériques."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Music"
+msgstr "Musique"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play music and other audio files."
+msgstr "Écoutez de la musique et d'autres fichiers audio."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Videos"
+msgstr "Vidéos"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Watch home movies and other digital videos."
+msgstr "Regardez vos films personnels et d'autres vidéos numériques."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Downloads"
+msgstr "Téléchargements"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find Internet downloads and links to favorite websites."
+msgstr "Retrouvez vos téléchargements et les liens vers vos sites web favoris."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Games"
+msgstr "Jeux"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Play and manage games on your computer."
+msgstr "Jouez et gérez les jeux de votre ordinateur."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Recent Items"
+msgstr "Éléments récents"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open documents you worked on recently."
+msgstr "Ouvrez les documents sur lesquels vous avez travaillé récemment."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Computer"
+msgstr "Ordinateur"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "See the disk drives and other hardware connected to your computer."
+msgstr "Consultez les lecteurs de disque et les autres matériels connectés à votre ordinateur."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Network"
+msgstr "Réseau"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Access the computers and devices that are on your network."
+msgstr "Accédez aux ordinateurs et aux périphériques présents sur votre réseau."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Control Panel"
+msgstr "Panneau de configuration"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Change settings and customize the functionality of your computer."
+msgstr "Modifiez les paramètres et personnalisez le fonctionnement de votre ordinateur."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Devices and Printers"
+msgstr "Périphériques et imprimantes"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "View and manage devices, printers and print jobs."
+msgstr "Affichez et gérez les périphériques, les imprimantes et les tâches d'impression."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Default Programs"
+msgstr "Programmes par défaut"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Choose default programs for web browsing, e-mail and other activities."
+msgstr "Choisissez les programmes par défaut pour la navigation web, la messagerie et d'autres activités."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Help and Support"
+msgstr "Aide et support"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Find help topics, tutorials, troubleshooting and other support services."
+msgstr "Trouvez des rubriques d'aide, des didacticiels, des dépannages et d'autres services d'assistance."
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Run…"
+msgstr "Exécuter…"
+
+#: ../contents/ui/SidePanelModels.qml
+msgid "Open a program, folder, document or web site."
+msgstr "Ouvrez un programme, un dossier, un document ou un site web."
