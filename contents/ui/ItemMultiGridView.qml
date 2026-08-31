@@ -29,7 +29,9 @@ PlasmaComponents.ScrollView {
     signal keyNavDown()
 
     property bool grabFocus: false
-    property alias model: repeater.model
+    // Ordered list of { title, model }: the caller decides which section comes
+    // first, instead of inheriting whatever order the runners answered in.
+    property var sections: []
     property alias count: repeater.count
     property alias flickableItem: flickable
 
@@ -93,6 +95,8 @@ PlasmaComponents.ScrollView {
             Repeater {
                 id: repeater
 
+                model: itemMultiGrid.sections
+
                 delegate: Item {
                     width: itemColumn.width
                     height: gridView.height + gridViewLabel.height + Kirigami.Units.largeSpacing * 2
@@ -113,16 +117,7 @@ PlasmaComponents.ScrollView {
                         color: Kirigami.Theme.textColor
                         level: 4
 
-                        // CORREÇÃO: Verificar se o modelo existe antes de acessar
-                        text: {
-                            if (repeater.model && typeof repeater.model.modelForRow === "function") {
-                                var rowModel = repeater.model.modelForRow(index);
-                                if (rowModel && rowModel.description) {
-                                    return rowModel.description;
-                                }
-                            }
-                            return "Search Results";
-                        }
+                        text: modelData && modelData.title ? modelData.title : ""
                         textFormat: Text.PlainText
                     }
 
@@ -174,13 +169,7 @@ PlasmaComponents.ScrollView {
 
                         verticalScrollBarPolicy: PlasmaComponents.ScrollBar.AlwaysOff
 
-                        // CORREÇÃO: Verificar se o modelo existe antes de atribuir
-                        model: {
-                            if (repeater.model && typeof repeater.model.modelForRow === "function") {
-                                return repeater.model.modelForRow(index);
-                            }
-                            return null;
-                        }
+                        model: modelData ? modelData.model : null
 
                         onFocusChanged: {
                             if (focus) {

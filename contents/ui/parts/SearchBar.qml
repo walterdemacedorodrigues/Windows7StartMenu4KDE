@@ -27,7 +27,6 @@ Rectangle {
     property alias text: searchField.text
     property bool isSearching: text !== ""
     property var menuContentRef: null
-    property var runnerModelRef: null
     property int currentShowApps: 0
 
     // Signals
@@ -78,12 +77,8 @@ Rectangle {
 
         onTextChanged: {
             searchBar.isSearching = (text !== "");
-
-            // Update runner model query
-            if (searchBar.runnerModelRef) {
-                searchBar.runnerModelRef.query = text;
-            }
-
+            // The query travels through the signal only: assigning it to a model
+            // here would overwrite the binding that feeds every search section.
             searchBar.searchTextChanged(text);
         }
 

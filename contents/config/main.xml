@@ -190,5 +190,33 @@
     <entry name="viewUser" type="Bool">
       <default>true</default>
     </entry>
+
+    <entry name="searchRecentDocuments" type="Bool">
+      <label>Show a Recents section between applications and extended search.</label>
+      <default>true</default>
+    </entry>
+    <entry name="extendedSearch" type="Bool">
+      <label>Search files below the application results.</label>
+      <default>true</default>
+    </entry>
+    <entry name="extendedSearchEngine" type="String">
+      <label>script, fd, find, plocate or kde (Baloo).</label>
+      <default>script</default>
+    </entry>
+    <entry name="extendedSearchPaths" type="StringList">
+      <label>Roots the external tool walks. Empty means the home directory.</label>
+      <default></default>
+    </entry>
+    <entry name="extendedSearchMax" type="Int">
+      <default>30</default>
+      <min>1</min>
+      <max>200</max>
+    </entry>
+    <entry name="extendedSearchTimeout" type="Int">
+      <label>Seconds the external tool may run before partial results are used.</label>
+      <default>8</default>
+      <min>1</min>
+      <max>60</max>
+    </entry>
   </group>
 </kcfg>

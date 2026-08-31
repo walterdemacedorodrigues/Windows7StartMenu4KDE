@@ -34,6 +34,10 @@ PlasmoidItem {
 
     readonly property bool hierarchical: Plasmoid.configuration.hierarchicalAllPrograms
 
+    // Every search source reads the query from here, so the sections below the
+    // search bar always answer the same text.
+    property string searchQuery: ""
+
     KCoreAddons.KUser {
         id: kuser
     }
@@ -257,7 +261,7 @@ PlasmoidItem {
 
                     onSearchTextChanged: text => {
                         root.searching = (text !== "");
-                        runnerModel.query = text;
+                        kicker.searchQuery = text;
                     }
                     onCloseRequested: root.toggle()
                     onContextMenuRequested: (x, y) => {
@@ -269,12 +273,10 @@ PlasmoidItem {
                     onShowAppsChangeRequested: value => root.setShowApps(value)
                 }
 
-                Connections {
-                    target: kicker
-                    function onSearchResultsReady() {
-                        menuContent.runnerGrid.model = null;
-                        menuContent.runnerGrid.model = runnerModel;
-                    }
+                Binding {
+                    target: menuContent.runnerGrid
+                    property: "sections"
+                    value: kicker.searchSections
                 }
 
                 Connections {
@@ -289,10 +291,12 @@ PlasmoidItem {
                 id: searchBar
 
                 menuContentRef: menuContent
-                runnerModelRef: runnerModel
                 currentShowApps: root.showApps
 
-                onSearchTextChanged: text => root.searching = (text !== "")
+                onSearchTextChanged: text => {
+                    root.searching = (text !== "");
+                    kicker.searchQuery = text;
+                }
                 onContextMenuRequested: (x, y) => {
                     const p = searchBar.mapToItem(root, x, y);
                     appletContextMenu.popup(root, p.x, p.y);
@@ -498,7 +502,6 @@ PlasmoidItem {
         } else {
             menuContent.appsView.flatModel = rootModel.modelForRow(0);
         }
-        menuContent.runnerGrid.model = runnerModel;
     }
 
     // Drives the glow on the All Programs button while an application the user
@@ -575,32 +578,149 @@ PlasmoidItem {
 
     Connections {
         target: runnerModel
-        function onQueryFinished() {
-            if (!kicker.fullRepresentationItem) return;
-            kicker.searchResultsReady();
-        }
+        function onQueryFinished() { kicker.rebuildSearchSections(); }
+        function onCountChanged() { kicker.rebuildSearchSections(); }
     }
 
-    signal searchResultsReady()
-
+    // Applications and system entries. File runners are deliberately absent so
+    // this model can never push a file above a program in the list.
     Kicker.RunnerModel {
         id: runnerModel
         appletInterface: kicker
         favoritesModel: globalFavorites
         mergeResults: true
+        query: kicker.searchQuery
         runners: {
-            const results = ["quicksearch",
-                             "krunner_services",
+            const results = ["krunner_services",
                              "krunner_systemsettings",
                              "krunner_sessions",
                              "krunner_powerdevil",
                              "calculator",
                              "unitconverter"];
             if (Plasmoid.configuration.useExtraRunners) {
-                results.push(...Plasmoid.configuration.extraRunners);
+                const fileRunners = ["quicksearch", "baloosearch"];
+                results.push(...Plasmoid.configuration.extraRunners.filter(r => fileRunners.indexOf(r) === -1));
             }
             return results;
         }
+    }
+
+    // The extended search section: the user's own runner, or the stock Baloo
+    // one when the settings ask for the KDE default.
+    Kicker.RunnerModel {
+        id: fileRunnerModel
+        appletInterface: kicker
+        favoritesModel: globalFavorites
+        mergeResults: true
+        query: Plasmoid.configuration.extendedSearch ? kicker.searchQuery : ""
+        runners: Plasmoid.configuration.extendedSearchEngine === "kde"
+                 ? ["baloosearch"]
+                 : ["quicksearch"]
+    }
+
+    Kicker.RecentUsageModel {
+        id: recentDocsSource
+        ordering: 0 // most recent first
+        shownItems: Kicker.RecentUsageModel.OnlyDocs
+    }
+
+    // KSortFilterProxyModel exposes no row mapping to QML, so activation counts
+    // matches instead: with no sorting the proxy keeps the source order, so the
+    // Nth visible row is the Nth source row that passes the same predicate.
+    KItemModels.KSortFilterProxyModel {
+        id: recentDocsResults
+        sourceModel: recentDocsSource
+
+        readonly property int displayRole: recentDocsSource.KItemModels.KRoleNames.role("display")
+
+        function matches(sourceRow) {
+            const query = kicker.searchQuery.trim().toLowerCase();
+            if (query === "" || !Plasmoid.configuration.searchRecentDocuments) {
+                return false;
+            }
+            const name = String(sourceModel.data(sourceModel.index(sourceRow, 0), displayRole) || "").toLowerCase();
+            return query.split(/\s+/).every(word => name.indexOf(word) !== -1);
+        }
+
+        filterRowCallback: function (sourceRow, sourceParent) {
+            return matches(sourceRow);
+        }
+
+        function trigger(row, actionId, argument) {
+            let visible = -1;
+            for (let i = 0; i < sourceModel.count; ++i) {
+                if (matches(i) && ++visible === row) {
+                    sourceModel.trigger(i, actionId || "", argument === undefined ? null : argument);
+                    return;
+                }
+            }
+        }
+    }
+
+    // Fixed section order, rebuilt whenever one of the sources answers.
+    property var searchSections: []
+
+    function rebuildSearchSections() {
+        const sections = [];
+        if (runnerModel.count > 0) {
+            sections.push({ title: i18n("Programs"), model: runnerModel.modelForRow(0) });
+        }
+        if (Plasmoid.configuration.searchRecentDocuments && recentDocsResults.count > 0) {
+            sections.push({ title: i18n("Recent"), model: recentDocsResults });
+        }
+        if (Plasmoid.configuration.extendedSearch && fileRunnerModel.count > 0) {
+            sections.push({ title: i18n("Extended search"), model: fileRunnerModel.modelForRow(0) });
+        }
+        kicker.searchSections = sections;
+    }
+
+    onSearchQueryChanged: {
+        // The proxy has no way to know the query changed; nothing re-filters
+        // until it is told to.
+        recentDocsResults.invalidateFilter();
+        if (searchQuery === "") {
+            kicker.searchSections = [];
+        } else {
+            rebuildSearchSections();
+        }
+    }
+
+    Connections {
+        target: fileRunnerModel
+        function onQueryFinished() { kicker.rebuildSearchSections(); }
+        function onCountChanged() { kicker.rebuildSearchSections(); }
+    }
+
+    Connections {
+        target: recentDocsResults
+        function onCountChanged() { kicker.rebuildSearchSections(); }
+    }
+
+    // Mirrors the search settings into the file the quicksearch runner reads, so
+    // Alt+F2 and the menu share one engine and one set of roots.
+    function syncQuickSearchConfig() {
+        if (!kicker.executable) {
+            return;
+        }
+        const engine = Plasmoid.configuration.extendedSearchEngine;
+        const config = {
+            engine: engine === "kde" ? "script" : engine,
+            roots: (Plasmoid.configuration.extendedSearchPaths || []).filter(path => path !== ""),
+            max_results: Plasmoid.configuration.extendedSearchMax,
+            min_length: 3,
+            timeout: Plasmoid.configuration.extendedSearchTimeout
+        };
+        const payload = JSON.stringify(config).replace(/'/g, "'\\''");
+        kicker.executable.exec("printf '%s' '" + payload
+            + "' > \"${XDG_CONFIG_HOME:-$HOME/.config}/krunner-quicksearch.json\"");
+    }
+
+    Connections {
+        target: Plasmoid.configuration
+        function onExtendedSearchEngineChanged() { kicker.syncQuickSearchConfig(); }
+        function onExtendedSearchPathsChanged() { kicker.syncQuickSearchConfig(); }
+        function onExtendedSearchMaxChanged() { kicker.syncQuickSearchConfig(); }
+        function onExtendedSearchTimeoutChanged() { kicker.syncQuickSearchConfig(); }
     }
 
     property P5Support.DataSource executable: P5Support.DataSource {
@@ -688,5 +808,6 @@ PlasmoidItem {
     Component.onCompleted: {
         windowSystem.focusIn.connect(enableHideOnWindowDeactivate);
         dragHelper.dropped.connect(resetDragSource);
+        syncQuickSearchConfig();
     }
 }

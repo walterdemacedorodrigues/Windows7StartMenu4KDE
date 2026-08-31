@@ -236,7 +236,7 @@ KCM.SimpleKCM {
 
         CheckBox {
             id: useExtraRunners
-            text: i18n("Search bookmarks and files as well as applications")
+            text: i18n("Search browser bookmarks as well as applications")
         }
 
         Button {
